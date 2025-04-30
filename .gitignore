@@ -1,0 +1,20 @@
+# Directories
+.idea/
+.vs/
+SolitaireEngine/Binaries/
+SolitaireGame/Binaries/
+
+# Files
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+*.sln
+*.log
+*.pdb
+*.obj
+*.exp
+*.dll
+*.pch
+
+# Exclude
+!Vendor/Binaries
