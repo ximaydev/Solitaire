@@ -35,7 +35,7 @@ project "SolitaireEngine"
     filter "configurations:Debug"
         defines { 
             "DEBUG",            -- Debug mode flag
-            "LOG_ENABLED=1"     -- Enable logging system
+            "LOG_LEVEL=3"       -- Verbose logging level (3 = maximum)
         }
         symbols "On"            -- Generate debug symbols (PDB files)
         optimize "Debug"        -- Minimal optimizations for debugging
@@ -45,7 +45,7 @@ project "SolitaireEngine"
     filter "configurations:Release"
         defines { 
             "RELEASE",          -- Release mode flag
-            "LOG_ENABLED=0"    -- Disable logging in release
+            "LOG_LEVEL=1"        -- Minimal logging (1 = errors only)
         }
         optimize "Speed"        -- Maximum performance optimization
         symbols "Off"           -- No debug symbols in release builds

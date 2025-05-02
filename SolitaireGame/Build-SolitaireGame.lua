@@ -41,7 +41,7 @@ project "SolitaireGame"
     
     -- Debug configuration settings
     filter "configurations:Debug"
-        defines { 
+        defines {
             "DEBUG",             -- Debug mode flag
             "LOG_LEVEL=3"       -- Verbose logging level (3 = maximum)
         }
@@ -52,7 +52,7 @@ project "SolitaireGame"
     -- Release configuration settings
     filter "configurations:Release"
         defines { 
-            "RELEASE",           -- Release mode flag
+            "RELEASE",            -- Release mode flag
             "LOG_LEVEL=1"        -- Minimal logging (1 = errors only)
         }
         optimize "Speed"        -- Maximum performance optimization
