@@ -6,6 +6,10 @@
 #include <condition_variable>
 #include <fstream>
 #include <queue>
+#include <map>
+#include <unordered_map>
+#include <optional>
+#include <filesystem>
 
 // =============================================
 // Primitive Types
@@ -37,6 +41,10 @@ using SBool = bool;
 // =============================================
 // String Types
 // =============================================
+
+template<typename CharT, typename Traits, typename Allocator>
+using SBasicString = std::basic_string<CharT, Traits, Allocator>;
+
 using SString = std::string;
 using SStringView = std::string_view;
 using SWString = std::wstring;
@@ -45,6 +53,7 @@ using SWStringView = std::wstring_view;
 // =============================================
 // Memory Management
 // =============================================
+
 using SSize = std::size_t;
 
 // Smart Pointers
@@ -57,9 +66,13 @@ using SSharedPtr = std::shared_ptr<T>;
 template<typename T>
 using SWeakPtr = std::weak_ptr<T>;
 
+template<typename T>
+using SOptional = std::optional<T>;
+
 // =============================================
 // Concurrency and Threading
 // =============================================
+
 using SMutex = std::mutex;
 using SConditionVariable = std::condition_variable;
 using SThread = std::thread;
@@ -70,12 +83,31 @@ using SAtomic = std::atomic<T>;
 // =============================================
 // File Operations
 // =============================================
+
+using SPath = std::filesystem::path;
+
 using SFileWriter = std::ofstream;
 using SWFileWriter = std::wofstream;
+using SFileReader = std::ifstream;
+using SWFileReader = std::wifstream;
 using SStringStream = std::ostringstream;
 using SWStringStream = std::wostringstream;
+
 // =============================================
 // Containers
 // =============================================
+
 template<typename T>
 using SQueue = std::queue<T>;
+
+template<typename Key, typename Value>
+using SMap = std::map<Key, Value>;
+
+template<typename Key, typename Value>
+using SUnorderedMap = std::unordered_map<Key, Value>;
+
+using SINISectionMap = SUnorderedMap<SString, SString>;
+using SINIConfigMap = SUnorderedMap<SString, SINISectionMap>;
+
+template<typename T>
+using SVector = std::vector<T>;

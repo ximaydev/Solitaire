@@ -10,17 +10,17 @@ enum class SOLITAIRE_ENGINE_API ELogLevel : SUInt8
 };
 
 /** class for asynchronous logging */
-class SOLITAIRE_ENGINE_API FileLogger
+class SOLITAIRE_ENGINE_API SFileLogger
 {
 public:
 	/** Default constructor */
-	FileLogger();
+	SFileLogger();
 
 	/** Returns a pointer to the global logger instance (singleton-like access) */
-	static FileLogger* GetInstance();
+	static SFileLogger* GetInstance();
 
 	/** Converts a log level enum to a corresponding string */
-	void LogLevelToString(ELogLevel LogLevel, SWString& OutString);
+	void LogLevelToString(ELogLevel LogLevel, SWString& OutString) const;
 
 	/** Logs a message */
 	void Log(const SWStringView& Category, ELogLevel LogLevel, const SWideChar* const Format, ...);
@@ -36,7 +36,7 @@ protected:
 	SAtomic<bool> IsRunning = true;
 
 	/** File writer used for writing to the log file */
-	SFileWriter LogFileWriter;
+	SFileWriter LogFileWriter = {};
 
 	/** Thread-safe queue of log messages */
 	SQueue<SString> LogQueue = {};
@@ -48,9 +48,9 @@ protected:
 	SMutex QueueMutex = {};
 
 	/** Background thread responsible for processing log messages */
-	SThread WorkerThread;
+	SThread WorkerThread = {};
 
 private:
 	/** Generates a unique log file name based on the current date and time. */
-	SString GenerateLogFileName();
+	SString GenerateLogFileName() const;
 };

@@ -1,9 +1,8 @@
 #include "SolitaireEnginePCH.h"
 #include "Core/Logger/FileLogger.h"
-#include <iostream>
 #include <conio.h>
 
-FileLogger::FileLogger()
+SFileLogger::SFileLogger()
 {
 	//Open (create) and generate LogFile Name
 	LogFileWriter = SFileWriter(GenerateLogFileName(), std::ios::out | std::ios::ate);
@@ -22,17 +21,17 @@ FileLogger::FileLogger()
 	}
 
 	//Create thread
-	WorkerThread = SThread(&FileLogger::ProcessQueue, this);
+	WorkerThread = SThread(&SFileLogger::ProcessQueue, this);
 }
 
-FileLogger* FileLogger::GetInstance()
+SFileLogger* SFileLogger::GetInstance()
 {
 	// Return the raw pointer to the logger instance
-	static SUniquePtr<FileLogger> Logger = std::make_unique<FileLogger>();
+	static SUniquePtr<SFileLogger> Logger = std::make_unique<SFileLogger>();
 	return Logger.get();
 }
 
-void FileLogger::LogLevelToString(ELogLevel LogLevel, SWString& OutString)
+void SFileLogger::LogLevelToString(ELogLevel LogLevel, SWString& OutString) const
 {
 	switch (LogLevel)
 	{
@@ -59,7 +58,7 @@ void FileLogger::LogLevelToString(ELogLevel LogLevel, SWString& OutString)
 	}
 }
 
-void FileLogger::Log(const SWStringView& Category, ELogLevel LogLevel, const SWideChar* const Format, ...)
+void SFileLogger::Log(const SWStringView& Category, ELogLevel LogLevel, const SWideChar* const Format, ...)
 {
 	SWString LogCategory = Category.data();
 	SWString StringLogLevel;
@@ -70,7 +69,7 @@ void FileLogger::Log(const SWStringView& Category, ELogLevel LogLevel, const SWi
 	LogLevelToString(LogLevel, StringLogLevel);
 
 	// Get the current time as a string using the format "HH-MM-SS"
-	TimeLibrary::GetCurrentTimeAsString(TEXT("%H_%M_%S"), StringCurrentTime);
+	STimeLibrary::GetCurrentTimeAsString(TEXT("%H_%M_%S"), StringCurrentTime);
 
 	va_list args;
 	va_start(args, Format);
@@ -111,15 +110,37 @@ void FileLogger::Log(const SWStringView& Category, ELogLevel LogLevel, const SWi
 		std::lock_guard<SMutex> Lock(QueueMutex);
 		
 		// Convert the wide string to a narrow string and enqueue it for logging
-		LogQueue.push(std::move(StringLibrary::WideStringToString(FullMessage)));
+		LogQueue.push(std::move(SStringLibrary::WideStringToString(FullMessage)));
 	}
 
 	// Notify the background logging thread that a new message is available
 	Queue_CV.notify_one();
 }
 
+void SFileLogger::WaitForLoggingToFinish()
+{
+	{
+		// Acquire lock to access the queue and state safely
+		std::unique_lock<std::mutex> Lock(QueueMutex);
 
-void FileLogger::ProcessQueue()
+		// Signal the logger thread to finish
+		IsRunning = false;
+
+		// Wake up the logger thread if it's waiting
+		Queue_CV.notify_all();
+	}
+
+	// Wait for the logger thread to finish
+	if (WorkerThread.joinable())
+	{
+		WorkerThread.join();
+	}
+
+	// Close the log file
+	LogFileWriter.close();
+}
+
+void SFileLogger::ProcessQueue()
 {
 	while (IsRunning || !LogQueue.empty())
 	{
@@ -144,36 +165,13 @@ void FileLogger::ProcessQueue()
 	}
 }
 
-SString FileLogger::GenerateLogFileName()
+SString SFileLogger::GenerateLogFileName() const
 {
 	// Get the current time as a string.
 	SString Time;
-	TimeLibrary::GetCurrentTimeAsString(SString("%H_%M_%S"), Time);
+	STimeLibrary::GetCurrentTimeAsString(SString("%H_%M_%S"), Time);
 	
 	// Prefix the formatted time with "Log_" to create the log file name.
 	// Return the full path for the log file (including the file name).
-	return StringLibrary::WideStringToString(Core::Paths::GProjectSavedPath) + "\\Log_" + Time + ".txt";
-}
-
-void FileLogger::WaitForLoggingToFinish()
-{
-	{
-		// Acquire lock to access the queue and state safely
-		std::unique_lock<std::mutex> Lock(QueueMutex);
-
-		// Signal the logger thread to finish
-		IsRunning = false;
-
-		// Wake up the logger thread if it's waiting
-		Queue_CV.notify_all();
-	}
-
-	// Wait for the logger thread to finish
-	if (WorkerThread.joinable())
-	{
-		WorkerThread.join();
-	}
-
-	// Close the log file
-	LogFileWriter.close();
+	return SStringLibrary::WideStringToString(Core::Paths::GProjectSavedPath) + "\\Log_" + Time + ".txt";
 }

@@ -5,7 +5,7 @@
 #include <ctime>
 #include <chrono>
 
-void TimeLibrary::GetCurrentTimeAsString(const SString& Format, SString& OutString)
+void STimeLibrary::GetCurrentTimeAsString(const SString& Format, SString& OutString)
 {
     // Clear the output string to ensure it's empty before usage
     OutString.clear();
@@ -36,7 +36,7 @@ void TimeLibrary::GetCurrentTimeAsString(const SString& Format, SString& OutStri
     }
 }
 
-void TimeLibrary::GetCurrentTimeAsString(const SWString& Format, SWString& OutString)
+void STimeLibrary::GetCurrentTimeAsString(const SWString& Format, SWString& OutString)
 {
     // Clear the output string to ensure it's empty before usage
     OutString.clear();

@@ -9,3 +9,9 @@
 #include "Core/Ini/IniFileReader.h"
 #include "Core/Ini/IniFileWriter.h"
 #include "Core/Logger/LogCategories.h"
+#include <array>
+#include "Core/INI/INIFile.h"
+#include "Core/INI/INIFileManager.h"
+#include "Core/INI/INIFileReader.h"
+#include "Core/INI/INIFileWriter.h"
+#include <iostream>

@@ -1,8 +1,10 @@
 #include "SolitaireEnginePCH.h"
 #include "Core/Utils/Function Libraries/StringLibrary.h"
 #include <codecvt>
+#include <cwctype>
+#include <ctype.h>
 
-SWString StringLibrary::StringToWideString(const SString& String)
+SWString SStringLibrary::StringToWideString(const SString& String)
 {
 	SInt32 Length = static_cast<SInt32>(String.size());
 	SInt32 SizeNeeded = MultiByteToWideChar(CP_UTF8, 0, String.c_str(), Length, nullptr, 0);
@@ -14,12 +16,12 @@ SWString StringLibrary::StringToWideString(const SString& String)
 	return WideString;
 }
 
-SWString StringLibrary::StringToWideString(SString&& String)
+SWString SStringLibrary::StringToWideString(SString&& String)
 {
 	return StringToWideString(String);
 }
 
-SString StringLibrary::WideStringToString(const SWString& String)
+SString SStringLibrary::WideStringToString(const SWString& String)
 {
 	SInt32 Length = static_cast<SInt32>(String.size());
 	SInt32 SizeNeeded = WideCharToMultiByte(CP_UTF8, 0, String.c_str(), Length, nullptr, 0, nullptr, nullptr);
@@ -32,7 +34,123 @@ SString StringLibrary::WideStringToString(const SWString& String)
 	return NarrowString;
 }
 
-SString StringLibrary::WideStringToString(SWString&& String)
+SString SStringLibrary::WideStringToString(SWString&& String)
 {
 	return WideStringToString(String);
+}
+
+ void SStringLibrary::ToLower(SString& String)
+{
+	for (SChar& Char : String)
+	{
+		Char = std::tolower(Char);
+	}
+}
+
+ void SStringLibrary::ToLower(SWString& String)
+{
+	for (SWideChar& Char : String)
+	{
+		Char = std::towlower(Char);
+	}
+}
+
+ void SStringLibrary::ToLower(SString&& String)
+{
+	for (SChar& Char : String)
+	{
+		Char = std::tolower(Char);
+	}
+}
+
+ void SStringLibrary::ToLower(SWString&& String)
+{
+	for (SWideChar& Char : String)
+	{
+		Char = std::towlower(Char);
+	}
+}
+
+ SString SStringLibrary::ToLower(const SString& String)
+{
+	SString Result;
+	Result.reserve(String.size());
+
+	for (const SChar& Char : String)
+	{
+		Result += std::tolower(Char);
+	}
+
+	return Result;
+}
+
+ SWString SStringLibrary::ToLower(const SWString& String)
+{
+	SWString Result;
+	Result.reserve(String.size());
+
+	for (const SWideChar& Char : String)
+	{
+		Result += std::towlower(Char);
+	}
+
+	return Result;
+}
+
+ void SStringLibrary::ToUpper(SString& String)
+{
+	for (SChar& Char : String)
+	{
+		Char = std::toupper(Char);
+	}
+}
+
+ void SStringLibrary::ToUpper(SWString& String)
+{
+	for (SWideChar& Char : String)
+	{
+		Char = std::towupper(Char);
+	}
+}
+
+ void SStringLibrary::ToUpper(SString&& String)
+{
+	for (SChar& Char : String)
+	{
+		Char = std::toupper(Char);
+	}
+}
+
+ void SStringLibrary::ToUpper(SWString&& String)
+{
+	for (SWideChar& Char : String)
+	{
+		Char = std::towupper(Char);
+	}
+}
+
+ SString SStringLibrary::ToUpper(const SString& String)
+{
+	SString Result;
+	Result.reserve(String.size());
+
+	for (const SChar& Char : String)
+	{
+		Result += std::toupper(Char);
+	}
+
+	return Result;
+}
+
+ SWString SStringLibrary::ToUpper(const SWString& String)
+{
+	SWString Result;
+	Result.reserve(String.size());
+
+	for (const SWideChar& Char : String)
+	{
+		Result += std::towupper(Char);
+	}
+
+	return Result;
 }
