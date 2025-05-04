@@ -13,8 +13,18 @@ namespace fs = std::filesystem;
 namespace Core::Paths
 {
 	/** Global variable to store the project root path */
-	extern SWString GProjectRootPath;
+	const extern SWString GProjectRootPath;
 
-	/** Initializes the global project root path by determining the executable's location */
-	SOLITAIRE_ENGINE_API void IntializeProjectRootPath();
+	/** Global variable to store the content directory path */
+	const extern SWString GProjectContentPath;
+
+	/** Global variable to store the config directory path */
+	const extern SWString GProjectConfigPath;
+
+	/** Global variable to store the saved directory path */
+	const extern SWString GProjectSavedPath;
+
+	/** Creates necessary project directories if they do not already exist. */
+	//TODO: Delete SOLITAIRE_ENGINE_API, we don't want to export it
+	SOLITAIRE_ENGINE_API void CreateDirectories();
 }

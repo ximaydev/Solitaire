@@ -1,5 +1,5 @@
 #include "SolitaireEnginePCH.h"
-#include "Logger/FileLogger.h"
+#include "Core/Logger/FileLogger.h"
 #include <iostream>
 #include <conio.h>
 
@@ -59,10 +59,12 @@ void FileLogger::LogLevelToString(ELogLevel LogLevel, SWString& OutString)
 	}
 }
 
-void FileLogger::Log(ELogLevel LogLevel, const SWString& Message)
+void FileLogger::Log(const SWStringView& Category, ELogLevel LogLevel, const SWideChar* const Format, ...)
 {
+	SWString LogCategory = Category.data();
 	SWString StringLogLevel;
 	SWString StringCurrentTime;
+	SWString Message;
 
 	// Convert the log level enum to a string representation (e.g., "INFO", "ERROR")
 	LogLevelToString(LogLevel, StringLogLevel);
@@ -70,8 +72,39 @@ void FileLogger::Log(ELogLevel LogLevel, const SWString& Message)
 	// Get the current time as a string using the format "HH-MM-SS"
 	TimeLibrary::GetCurrentTimeAsString(TEXT("%H_%M_%S"), StringCurrentTime);
 
-	// Combine the time, log level, and message into one formatted log entry
-	SWString FullMessage = TEXT("[") + StringCurrentTime + TEXT("]") + TEXT("[") + StringLogLevel + TEXT("]") + TEXT(": ") + Message;
+	va_list args;
+	va_start(args, Format);
+
+	// Calculate the required buffer size for the formatted string
+	const SInt32 Length = _vscwprintf(Format, args) + 1; // +1 terminating '\0'
+
+	// Allocate buffer for the wide string
+	SWideChar* Buffer = (SWideChar*)malloc(Length * sizeof(SWideChar));
+
+	if (Buffer != nullptr)
+	{
+		// Format the string safely into the buffer
+		vswprintf_s(Buffer, Length, Format, args);
+
+		// Clean up original va_list
+		va_end(args);
+
+		// Assign to SWString
+		Message = Buffer;
+
+		// Free the temporary buffer
+		free(Buffer);
+	}
+	else
+	{
+		va_end(args);
+	}
+
+	// Combine the log category, time, log level, and message into one formatted log entry
+	SWString FullMessage = TEXT("[") + LogCategory + TEXT("]") +
+						   TEXT("[") + StringLogLevel + TEXT("]") +
+						   TEXT("[") + StringCurrentTime + TEXT("]") +
+						   TEXT(": ") + Message;
 
 	{
 		// Lock the mutex to safely access the log queue
@@ -116,19 +149,10 @@ SString FileLogger::GenerateLogFileName()
 	// Get the current time as a string.
 	SString Time;
 	TimeLibrary::GetCurrentTimeAsString(SString("%H_%M_%S"), Time);
-
-	// Create a path object for the "Saved" directory in the project root path.
-	fs::path LogPath = Core::Paths::GProjectRootPath + TEXT("Saved");
-
-	// Check if the "Saved" directory exists, if not, create it.
-	if (!fs::exists(LogPath))
-	{
-		fs::create_directory(LogPath); // Creates the directory if it doesn't exist.
-	}
 	
 	// Prefix the formatted time with "Log_" to create the log file name.
 	// Return the full path for the log file (including the file name).
-	return LogPath.string() + "\\Log_" + Time + ".txt";;// Use LogPath here instead of GProjectRootPath directly.
+	return StringLibrary::WideStringToString(Core::Paths::GProjectSavedPath) + "\\Log_" + Time + ".txt";
 }
 
 void FileLogger::WaitForLoggingToFinish()

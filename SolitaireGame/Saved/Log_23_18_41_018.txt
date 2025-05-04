@@ -1,0 +1,7 @@
+[LogFileSystem][Log][23_18_41_019]: Directory D:\Work\C++ Projects\Solitaire\SolitaireGame\Saved did not exist so it will be created
+[LogFileSystem][Log][23_18_41_020]: Directory D:\Work\C++ Projects\Solitaire\SolitaireGame\Content did not exist so it will be created
+[LogFileSystem][Log][23_18_41_021]: Directory D:\Work\C++ Projects\Solitaire\SolitaireGame\Config did not exist so it will be created
+[LogTemp][Warning][23_18_41_021]: Debug : something
+[LogTemp][Error][23_18_41_022]: Debug : 20.500000
+[LogTemp][Error][23_18_41_022]: Debug : 50000
+[LogTemp][Error][23_18_41_022]: Debug

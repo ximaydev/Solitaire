@@ -23,7 +23,7 @@ public:
 	void LogLevelToString(ELogLevel LogLevel, SWString& OutString);
 
 	/** Logs a message */
-	virtual void Log(ELogLevel LogLevel, const SWString& Message);
+	void Log(const SWStringView& Category, ELogLevel LogLevel, const SWideChar* const Format, ...);
 
 	/** Waits for the logging thread to finish by waiting for the log queue to be empty */
 	void WaitForLoggingToFinish();

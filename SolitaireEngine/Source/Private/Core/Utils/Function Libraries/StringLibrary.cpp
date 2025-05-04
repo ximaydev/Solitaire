@@ -2,7 +2,7 @@
 #include "Core/Utils/Function Libraries/StringLibrary.h"
 #include <codecvt>
 
-SWString StringLibrary::StringToWideString(SString& String)
+SWString StringLibrary::StringToWideString(const SString& String)
 {
 	SInt32 Length = static_cast<SInt32>(String.size());
 	SInt32 SizeNeeded = MultiByteToWideChar(CP_UTF8, 0, String.c_str(), Length, nullptr, 0);
@@ -19,7 +19,7 @@ SWString StringLibrary::StringToWideString(SString&& String)
 	return StringToWideString(String);
 }
 
-SString StringLibrary::WideStringToString(SWString& String)
+SString StringLibrary::WideStringToString(const SWString& String)
 {
 	SInt32 Length = static_cast<SInt32>(String.size());
 	SInt32 SizeNeeded = WideCharToMultiByte(CP_UTF8, 0, String.c_str(), Length, nullptr, 0, nullptr, nullptr);

@@ -38,7 +38,9 @@ using SBool = bool;
 // String Types
 // =============================================
 using SString = std::string;
+using SStringView = std::string_view;
 using SWString = std::wstring;
+using SWStringView = std::wstring_view;
 
 // =============================================
 // Memory Management
