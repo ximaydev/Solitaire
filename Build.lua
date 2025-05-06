@@ -21,3 +21,4 @@ workspace "Solitaire"
     -- Include project-specific configuration
     include "SolitaireGame/Build-SolitaireGame.lua"
     include "SolitaireEngine/Build-SolitaireEngine.lua"
+    include "SolitaireEngine/Tools/AssetListGenerator/Build-SolitaireEngine-AssetListGenerator.lua"

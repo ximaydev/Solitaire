@@ -24,6 +24,18 @@ namespace Core::Paths
 	/** Global variable to store the saved directory path */
 	const extern SWString GProjectSavedPath;
 
+	/** Returns absolute path to project root directory. */
+	SOLITAIRE_ENGINE_API inline const SWString& GetProjectRootPath() { return GProjectRootPath; }
+
+	/** Returns path to Content directory (relative to root). */
+	SOLITAIRE_ENGINE_API inline const SWString& GetProjectContentPath() { return GProjectContentPath; }
+
+	/** Returns path to Config directory. */
+	SOLITAIRE_ENGINE_API inline const SWString& GetProjectConfigPath() { return GProjectConfigPath; }
+
+	/** Returns path to Saved directory. */
+	SOLITAIRE_ENGINE_API inline const SWString& GetProjectSavedPath() { return GProjectSavedPath; }
+
 	/** Creates necessary project directories if they do not already exist. */
 	//TODO: Delete SOLITAIRE_ENGINE_API, we don't want to export it
 	SOLITAIRE_ENGINE_API void CreateDirectories();

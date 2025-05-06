@@ -15,3 +15,10 @@
 #include "Core/INI/INIFileReader.h"
 #include "Core/INI/INIFileWriter.h"
 #include <iostream>
+#include "Core//Audio/AudioEngine.h"
+#include "Core//Audio/AudioMaster.h"
+#include "Core//Audio/WAVLoader.h"
+#include "Core/Assets/AssetLoaderRegistry.h"
+#include "Core/Assets/AssetRegistry.h"
+#include "Core/Assets/AssetLoader.h"
+#include "Core/Assets/Asset.h"

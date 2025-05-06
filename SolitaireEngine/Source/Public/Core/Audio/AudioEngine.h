@@ -1,0 +1,53 @@
+#pragma once
+#include "Globals.h"
+#include <xaudio2.h>
+#include "Core/Audio/WAVLoader.h" 
+
+/** Forward Declarations */
+class SAudioMaster;
+
+/** Main audio engine class responsible for initializing and managing the audio system. */
+class SOLITAIRE_ENGINE_API SAudioEngine
+{
+public:
+    /** Constructor for audio engine. */
+    SAudioEngine();   
+
+    /** Sets the volume for a specific audio group. */
+    void SetVolume(const SWString& GroupName, SFloat NewVolume);
+
+    /** Sets the volume for Master. */
+    void SetMasterVolume(SFloat NewMasterVolume);
+
+    /** Gets the volume level for a specific audio group. */
+    SFloat GetVolume(const SWString& GroupName);
+
+    /** Plays a sound from a specific group. */
+    void PlaySound(const SWString& FilePath, const SWString& GroupName);
+    void PlaySound(const SWAVFile* WAVFile, XAUDIO2_BUFFER& Buffer, const SWString& GroupName);
+
+    /** Cleans up and shuts down the audio engine. */
+    virtual void Shutdown();
+
+    /** Pointer to the master volume controller. */
+    SUniquePtr<SAudioMaster> Master;
+
+protected:
+    /** Initializes XAudio2 and creates the master voice. */
+    virtual bool Initialize();
+
+    // Ensure we have a submix voice for this group
+    IXAudio2SubmixVoice* GetOrCreateSubmix(const SWString& GroupName, SUInt32 Channels = 2, SUInt32 SampleRate = 48000);
+
+    /** Pointer to the main XAudio2 engine instance. */
+    IXAudio2* AudioEngine;      
+
+    /** Map of submix voices for grouping different types of audio (e.g., Music, SFX). */
+    SUnorderedMap<SWString, IXAudio2SubmixVoice*> Submixes;
+
+    /** Map of audio groups and their associated source voices. */
+    SUnorderedMap<SWString, SVector<IXAudio2SourceVoice>> SoundGroups;
+
+    /** Volume levels for each audio group. */
+    SUnorderedMap<SWString, SFloat> GroupVolumes;
+};

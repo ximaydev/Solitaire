@@ -59,16 +59,22 @@ project "SolitaireGame"
         symbols "Off"           -- No debug symbols in release
         flags { "LinkTimeOptimization" }  -- Enable LTO for better optimization
         
-    -- Visual Studio specific compiler settings
-    filter "action:vs*"
+    -- Windows/Visual Studio specific settings
+    filter { "system:windows", "action:vs*" }
         buildoptions {
-            "/permissive-",     -- Enforce standards compliance
+            "/permissive-",     -- Enforce strict standards compliance
             "/Zc:__cplusplus",  -- Report accurate C++ standard version
-            "/MP"               -- Enable multi-processor compilation
+            "/MP",              -- Enable parallel compilation
+            "/std:c++20"        -- Force to use C++20
         }
         disablewarnings {
-            "26812",           -- Ignore enum class preference warning
-            "26495"            -- Suppress uninitialized variable warnings
+            "4251",  -- Suppress DLL-interface warnings (exported classes)
+            "4275",  -- Suppress non-DLL-interface base class warnings
+            "26812"  -- Ignore enum class preference warnings
+        }
+        flags {
+            "MultiProcessorCompile",  -- Force multi-core compilation
+            "FatalLinkWarnings"       -- Treat linker warnings as errors
         }
         
     -- Precompiled header configuration

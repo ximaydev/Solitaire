@@ -111,3 +111,6 @@ using SINIConfigMap = SUnorderedMap<SString, SINISectionMap>;
 
 template<typename T>
 using SVector = std::vector<T>;
+
+template<typename T1, typename T2>
+using SPair = std::pair<T1, T2>;

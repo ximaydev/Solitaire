@@ -7,6 +7,7 @@ project "SolitaireEngine"
     cppdialect "C++20"          -- Requires C++20 compatible compiler
     systemversion "latest"      -- Use latest Windows SDK version
     staticruntime "Off"         -- Use dynamic CRT (MSVCRT.dll) for runtime
+    dependson "AssetListGenerator"
 
     -- Source files organization
     files { 
@@ -29,6 +30,11 @@ project "SolitaireEngine"
     -- Engine-specific preprocessor definitions
     defines {
         "SOLITAIRE_ENGINE_BUILD",  -- DLL export/import control macro
+    }
+
+    prebuildcommands {
+        "echo Executing AssetListGenerator tool...",
+        "\"Binaries/%{cfg.buildcfg}/AssetListGenerator.exe\""
     }
 
     -- Debug configuration settings
@@ -55,7 +61,8 @@ project "SolitaireEngine"
         buildoptions {
             "/permissive-",     -- Enforce strict standards compliance
             "/Zc:__cplusplus",  -- Report accurate C++ standard version
-            "/MP"              -- Enable parallel compilation
+            "/MP",              -- Enable parallel compilation
+            "/std:c++20"        -- Force to use C++20
         }
         disablewarnings {
             "4251",  -- Suppress DLL-interface warnings (exported classes)

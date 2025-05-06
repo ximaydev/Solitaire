@@ -11,7 +11,7 @@ public:
 	static SString  WideStringToString(SWString&& String);
 
 	template<typename CharT, typename Traits, typename Allocator>
-	inline static void RemoveWhiteSpaces(std::basic_string<CharT, Traits, Allocator>& String);
+	inline static void RemoveWhiteSpaces(SBasicString<CharT, Traits, Allocator>& String);
 
 	static void ToLower(SString& String);
 	static void ToLower(SWString& String);
@@ -27,17 +27,32 @@ public:
 	static SString ToUpper(const SString& String);
 	static SWString ToUpper(const SWString& String);
 
+	template<typename CharT, typename Traits, typename Allocator>
+	inline static void GetFileExtension(const SBasicString<CharT, Traits, Allocator>& FilePath, SBasicString<CharT, Traits, Allocator>& OutExtension);
+
 	template<typename T>
 	static inline T Convert(const SString& String);
 };
 
 template<typename CharT, typename Traits, typename Allocator>
-inline void SStringLibrary::RemoveWhiteSpaces(std::basic_string<CharT, Traits, Allocator>& String)
+inline void SStringLibrary::RemoveWhiteSpaces(SBasicString<CharT, Traits, Allocator>& String)
 {
 	String.erase(std::remove_if(String.begin(), String.end(), [](CharT Char)
 		{
 			return std::isspace(Char);
 		}), String.end());
+}
+
+template<typename CharT, typename Traits, typename Allocator>
+inline void SStringLibrary::GetFileExtension(const SBasicString<CharT, Traits, Allocator>& FilePath, SBasicString<CharT, Traits, Allocator>& OutExtension)
+{
+	OutExtension.clear();
+
+	SSize Position = FilePath.find_last_of('.');
+	if (Position != SBasicString<CharT, Traits, Allocator>::npos)
+	{
+		OutExtension = FilePath.substr(Position);
+	}
 }
 
 template<>
