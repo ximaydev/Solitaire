@@ -1,12 +1,12 @@
 #pragma once
 #include "Globals.h"
-#include "Core/Assets/Asset.h"
-#include "Core/Assets/AssetLoader.h"
+#include "Core/Asset/Asset.h"
+#include "Core/Asset/AssetLoader.h"
 
 /** Structure representing a WAV file and its properties. */
-class SOLITAIRE_ENGINE_API SWAVFile : public SAsset
+class SOLITAIRE_ENGINE_API SWavFile : public SAsset
 {
-    friend class SWAVLoader;
+    friend class SWavLoader;
     friend class SAudioEngine;
 
 public:
@@ -49,7 +49,7 @@ public:
     /** Get Data */
     const std::vector<SUInt8>& GetData() const { return Data; }
 
-    /** Clear Asset */
+    /** Clear the asset */
     virtual void ClearAsset() override;
 
 protected:
@@ -69,16 +69,16 @@ protected:
 };
 
 /** Class responsible for loading and parsing WAV files. */
-class SOLITAIRE_ENGINE_API SWAVLoader : public SAssetLoader
+class SOLITAIRE_ENGINE_API SWavLoader : public SAssetLoader
 {
 public:
-    /** WAV file loading logic. */
+    /** Loads a WAV file from the specified file path into the provided output object. */
     virtual void Load(const SWString& FilePath, void* OutWAVFile) override;
 
-    /** WAV file unloading logic. */
+    /** Unloads the Wav file, releasing any associated resources. */
     virtual void UnLoad(void* OutFile) override;
 
-    /** WAV file creator */
+    /** Creates a new WAV file asset. */
     virtual SSharedPtr<SAsset> CreateAsset() override;
 
 protected:
@@ -86,17 +86,17 @@ protected:
     bool ReadRIFFHeader(SFileReader& File);
 
     /** Processes a chunk of data in the WAV file and identifies the type of chunk (fmt, data, fact, etc.) */
-    bool ProcessChunk(SFileReader& File, SWAVFile* OutWAVFile, bool& FmtFound, bool& DataFound);
+    bool ProcessChunk(SFileReader& File, SWavFile* OutWAVFile, bool& FmtFound, bool& DataFound);
 
     /** Processes the fmt chunk to extract audio format information (e.g., sample rate, channels) */
-    bool ProcessFmtChunk(SFileReader& File, SWAVFile* OutWAVFile, SUInt32 ChunkSize);
+    bool ProcessFmtChunk(SFileReader& File, SWavFile* OutWAVFile, SUInt32 ChunkSize);
 
     /** Processes the data chunk and extracts the audio data */
-    bool ProcessDataChunk(SFileReader& File, SWAVFile* OutWAVFile, SUInt32 ChunkSize);
+    bool ProcessDataChunk(SFileReader& File, SWavFile* OutWAVFile, SUInt32 ChunkSize);
 
     /** Processes 8/16/24/32-bit PCM data from the WAV file */
-    void ProcessPCM(SFileReader& File, SWAVFile* OutWAVFile, SUInt32 ChunkSize);
+    void ProcessPCM(SFileReader& File, SWavFile* OutWAVFile, SUInt32 ChunkSize);
 
     /** Processes the fact chunk, typically containing additional data such as the number of samples */
-    bool ProcessFactChunk(SFileReader& File, SWAVFile* OutWAVFile, SUInt32 ChunkSize);
+    bool ProcessFactChunk(SFileReader& File, SWavFile* OutWAVFile, SUInt32 ChunkSize);
 };

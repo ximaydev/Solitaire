@@ -1,6 +1,5 @@
 #include "SolitaireEnginePCH.h"
-#include "Core/Assets/AssetRegistry.h"
-#include "Core/Assets/AssetLoaderRegistry.h"
+#include "Core/Asset/AssetRegistry.h"
 
 SAssetRegistry* SAssetRegistry::GetInstance()
 {

@@ -15,7 +15,8 @@ bool SAudioEngine::Initialize()
 	HRESULT CoResult = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	if (FAILED(CoResult))
 	{
-		S_LOG_ERROR(LogAudio, TEXT("Failed to initialize COM. HRESULT: 0x%08X"), CoResult);
+		// Exit the application if COM initialization fails
+		S_LOG_ERROR(LogAudio, TEXT("COM initialization failed for Audio Engine. HRESULT: 0x%08X"), CoResult);
 		exit(1);
 	}
 
@@ -24,7 +25,7 @@ bool SAudioEngine::Initialize()
 	if (FAILED(Result))
 	{
 		// If creation fails, log the error and terminate the application.
-		S_LOG_ERROR(LogAudio, TEXT("Failed to create XAudio2 engine. Terminating application. HRESULT: 0x%08X"), Result);
+		S_LOG_ERROR(LogAudio, TEXT("Failed to create XAudio2 engine with the default processor. HRESULT: 0x%08X. Application will be terminated."), Result);
 		exit(1);
 	}
 
@@ -35,22 +36,33 @@ bool SAudioEngine::Initialize()
 
 void SAudioEngine::Shutdown()
 {
+	// Log shutdown initiation
+	S_LOG(LogAudio, TEXT("Audio Engine shutdown initiated."));
+
 	// Destroy all submix voices before shutting down.
 	for (auto& [GroupName, Submix] : Submixes)
 	{
+		// Log each submix voice destruction
+		S_LOG(LogAudio, TEXT("Destroying submix voice for group: %s"), GroupName.c_str());
 		Submix->DestroyVoice();
 	}
 
 	// Clear maps holding submixes and group volumes.
+	S_LOG(LogAudio, TEXT("Clearing submixes and group volumes."));
 	Submixes.clear();
 	GroupVolumes.clear();
 
 	// Release the XAudio2 engine.
 	if (AudioEngine)
 	{
+		// Log the release of the XAudio2 engine
+		S_LOG(LogAudio, TEXT("Releasing XAudio2 engine."));
 		AudioEngine->Release();
 		AudioEngine = nullptr;
 	}
+
+	// Log shutdown completion
+	S_LOG(LogAudio, TEXT("Audio Engine shutdown completed."));
 }
 
 void SAudioEngine::SetVolume(const SWString& GroupName, SFloat NewVolume)
@@ -58,12 +70,19 @@ void SAudioEngine::SetVolume(const SWString& GroupName, SFloat NewVolume)
 	// Clamp the volume value between 0.0 and 1.0.
 	NewVolume = std::clamp(NewVolume, 0.0f, 1.0f);
 
+	// Log the volume change for the group
+	S_LOG(LogAudio, TEXT("Setting volume for group '%s' to %.2f"), GroupName.c_str(), NewVolume);
+
 	// Save the new volume value for the group.
 	GroupVolumes[GroupName] = NewVolume;
 
 	// Apply the volume to the corresponding submix (create if needed).
 	if (IXAudio2SubmixVoice* Submix = GetOrCreateSubmix(GroupName))
 	{
+		// Log the volume application to the submix
+		S_LOG(LogAudio, TEXT("Applying volume %.2f to submix for group '%s'"), (NewVolume * Master->GetMasterVolume()), GroupName.c_str());
+
+		// Apply the volume
 		Submix->SetVolume(NewVolume * Master->GetMasterVolume());
 		GroupVolumes[GroupName] = NewVolume;
 	}
@@ -71,15 +90,26 @@ void SAudioEngine::SetVolume(const SWString& GroupName, SFloat NewVolume)
 
 void SAudioEngine::SetMasterVolume(SFloat NewMasterVolume)
 {
+	// Clamp the master volume to the range [0.0, 1.0]
+	NewMasterVolume = std::clamp(NewMasterVolume, 0.0f, 1.0f);
+
+	// Log the change of master volume
+	S_LOG(LogAudio, TEXT("Setting master volume to %.2f"), NewMasterVolume);
+
 	// Update the master volume.
 	Master->SetMasterVolume(NewMasterVolume);
 
 	// Update each submix with the new master volume applied.
+	//TODO Sprawdziæ czy to ma sens, master mo¿e automatycznie zmniejszaæ ich g³oœnoœæ
 	for (const auto& [GroupName, Submix] : Submixes)
 	{
+		// Log the application of the master volume to each submix
+		S_LOG(LogAudio, TEXT("Updating volume for group '%s' with master volume %.2f"), GroupName.c_str(), NewMasterVolume);
+
 		Submix->SetVolume(GroupVolumes[GroupName] * NewMasterVolume);
 	}
 }
+
 
 SFloat SAudioEngine::GetVolume(const SWString& GroupName)
 {
@@ -91,13 +121,14 @@ SFloat SAudioEngine::GetVolume(const SWString& GroupName)
 void SAudioEngine::PlaySound(const SWString& FilePath, const SWString& GroupName)
 {
 	// Load WAV file from the provided file path into WAVFile 
-	SWAVFile* WAVFile = SAssetRegistry::GetInstance()->GetAsset<SWAVFile>(FilePath);
+	SWavFile* WAVFile = SAssetRegistry::GetInstance()->GetAsset<SWavFile>(FilePath);
 
 	//Check if the WAVFile isn't valid
 	if (!WAVFile->IsValid)
 	{
-		// Log a warning if the WAV file is not valid.
-		S_LOG_WARNING(LogAudio, TEXT("WAVFile isn't valid, we won't play sound."));
+		// Log a warning if the WAV file is not valid. Exit early if the WAV file is invalid
+		S_LOG_WARNING(LogAudio, TEXT("WAV file '%s' isn't valid or couldn't be loaded. Sound will not be played."), FilePath.c_str());
+		return;
 	}
 
 	// Prepare XAUDIO2_BUFFER, which contains the actual audio data
@@ -109,7 +140,7 @@ void SAudioEngine::PlaySound(const SWString& FilePath, const SWString& GroupName
 	PlaySound(WAVFile, Buffer, GroupName);
 }
 
-void SAudioEngine::PlaySound(const SWAVFile* WAVFile, XAUDIO2_BUFFER& Buffer, const SWString& GroupName)
+void SAudioEngine::PlaySound(const SWavFile* WAVFile, XAUDIO2_BUFFER& Buffer, const SWString& GroupName)
 {
 	// 2. Build WAVEFORMATEX structure, which defines the audio format
 	WAVEFORMATEX Format = {};
@@ -125,29 +156,32 @@ void SAudioEngine::PlaySound(const SWAVFile* WAVFile, XAUDIO2_BUFFER& Buffer, co
 	IXAudio2SourceVoice* SourceVoice = nullptr;
 
 	//Initialize sends structure
-	XAUDIO2_VOICE_SENDS send = {};
-	send.SendCount = 1; 								  // We only have one output (MasterVoice)
-	XAUDIO2_SEND_DESCRIPTOR sendDesc = { 0 };		 	  // Initialize send descriptor to zero
-	sendDesc.pOutputVoice = GetOrCreateSubmix(GroupName); // Set the output voice
-	send.pSends = &sendDesc;  							  // Point to the send descriptor
+	XAUDIO2_VOICE_SENDS Send = {};
+	Send.SendCount = 1; 								  // We only have one output (MasterVoice)
+	XAUDIO2_SEND_DESCRIPTOR SendDesc = { 0 };		 	  // Initialize send descriptor to zero
+	SendDesc.pOutputVoice = GetOrCreateSubmix(GroupName); // Set the output voice
+	Send.pSends = &SendDesc;  							  // Point to the send descriptor
 
 	// Create source voice with specified format
-	HRESULT CreateSourceVoiceResult = AudioEngine->CreateSourceVoice(&SourceVoice, &Format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, nullptr, &send);
+	HRESULT CreateSourceVoiceResult = AudioEngine->CreateSourceVoice(&SourceVoice, &Format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, nullptr, &Send);
 	if (FAILED(CreateSourceVoiceResult))
 	{
 		// Log an error if creating the source voice fails
-		S_LOG_ERROR(LogAudio, TEXT("Failed to create source voice. HRESULT: 0x%08X"), CreateSourceVoiceResult);
+		S_LOG_ERROR(LogAudio, TEXT("Failed to create source voice with HRESULT: 0x%08X."), CreateSourceVoiceResult);
 		return;
 	}
 
 	// Submit the buffer to the source voice and start playback
-	HRESULT SourecVoiceResult = SourceVoice->SubmitSourceBuffer(&Buffer);
-	if (FAILED(SourecVoiceResult))
+	HRESULT SourceVoiceResult = SourceVoice->SubmitSourceBuffer(&Buffer);
+	if (FAILED(SourceVoiceResult))
 	{
 		// Log an error if submitting the buffer fails
-		S_LOG_ERROR(LogAudio, TEXT("Failed to submit source buffer. HRESULT: 0x%08X"), SourecVoiceResult);
+		S_LOG_ERROR(LogAudio, TEXT("Failed to submit source buffer to source voice. HRESULT: 0x%08X"), SourceVoiceResult);
 		return;
 	}
+
+	// Log the sound start
+	S_LOG(LogAudio, TEXT("Playing sound for group '%s'."), GroupName.c_str());
 
 	// Start playback of the sound
 	SourceVoice->Start();
@@ -159,6 +193,8 @@ IXAudio2SubmixVoice* SAudioEngine::GetOrCreateSubmix(const SWString& GroupName, 
 	auto Iterator = Submixes.find(GroupName);
 	if (Iterator != Submixes.end())
 	{
+		// Log when the submix is found, indicating reuse.
+		S_LOG(LogAudio, TEXT("Submix for group '%s' already exists. Reusing existing submix."), GroupName.c_str());
 		return Iterator->second;
 	}
 
@@ -168,7 +204,7 @@ IXAudio2SubmixVoice* SAudioEngine::GetOrCreateSubmix(const SWString& GroupName, 
 	if (FAILED(Result))
 	{
 		// Log a detailed error if submix creation fails.
-		S_LOG_ERROR(LogAudio, TEXT("Could not create submix voice (Channels: %d, Sample Rate: %d). HRESULT: 0x%08X"), Channels, SampleRate, Result);
+		S_LOG_ERROR(LogAudio, TEXT("Failed to create submix voice for group '%s' (Channels: %d, Sample Rate: %d). HRESULT: 0x%08X"), GroupName.c_str(), Channels, SampleRate, Result);
 		return nullptr;
 	}
 
@@ -178,6 +214,9 @@ IXAudio2SubmixVoice* SAudioEngine::GetOrCreateSubmix(const SWString& GroupName, 
 
 	// Apply the volume to the submix, factoring in the master volume.
 	NewSubmix->SetVolume(BaseVolume * Master->GetMasterVolume());
+
+	// Log the successful creation of a new submix.
+	S_LOG(LogAudio, TEXT("Successfully created submix for group '%s' with Channels: %d, Sample Rate: %d."), GroupName.c_str(), Channels, SampleRate);
 
 	// Store the newly created submix for future use.
 	Submixes[GroupName] = NewSubmix;

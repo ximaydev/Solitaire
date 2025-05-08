@@ -6,7 +6,7 @@
 #define DATA "data"      // Define data chunk identifier
 #define FACT "fact"      // Define fact chunk identifier
 
-void SWAVFile::ClearAsset()
+void SWavFile::ClearAsset()
 {
     IsValid = false;           
     AudioFormat = 0;          
@@ -24,7 +24,7 @@ void SWAVFile::ClearAsset()
     Data.shrink_to_fit();
 }
 
-void SWAVLoader::Load(const SWString& FilePath, void* OutFile)
+void SWavLoader::Load(const SWString& FilePath, void* OutFile)
 {
     //Check if the OutFile is nullptr
     if (OutFile == nullptr)
@@ -35,7 +35,7 @@ void SWAVLoader::Load(const SWString& FilePath, void* OutFile)
     }
 
     // Cast
-    SWAVFile* WAVFile  = static_cast<SWAVFile*>(OutFile);
+    SWavFile* WAVFile  = static_cast<SWavFile*>(OutFile);
 
     // Check if the WAVFile is nullptr
     if (WAVFile == nullptr)
@@ -70,20 +70,23 @@ void SWAVLoader::Load(const SWString& FilePath, void* OutFile)
         // Process each chunk in the file
         if (!ProcessChunk(File, WAVFile, FmtFound, DataFound))
         {
+            // Mark WAV file as invalid
+            WAVFile->IsValid = false;
+
+            // Handle missing fmt or data chunk
+            if (!FmtFound)
+            {
+                S_LOG_ERROR(LogAudio, TEXT("WAV file missing 'fmt ' chunk"));
+                return;
+            }
+            if (!DataFound)
+            {
+                S_LOG_ERROR(LogAudio, TEXT("WAV file missing 'data' chunk"));
+                return;
+            }
+
             break;
         }
-    }
-
-    // Handle missing fmt or data chunk
-    if (!FmtFound)
-    {
-        S_LOG_ERROR(LogAudio, TEXT("WAV file missing 'fmt ' chunk"));
-        return;
-    }
-    if (!DataFound)
-    {
-        S_LOG_ERROR(LogAudio, TEXT("WAV file missing 'data' chunk"));
-        return;
     }
 
     // Mark WAV file as valid
@@ -93,7 +96,7 @@ void SWAVLoader::Load(const SWString& FilePath, void* OutFile)
     return;
 }
 
-void SWAVLoader::UnLoad(void* OutFile)
+void SWavLoader::UnLoad(void* OutFile)
 {
     //Check if the OutFile is nullptr
     if (OutFile == nullptr)
@@ -103,7 +106,7 @@ void SWAVLoader::UnLoad(void* OutFile)
     }
 
     //Casting test
-    SWAVFile* WAVFile = static_cast<SWAVFile*>(OutFile);
+    SWavFile* WAVFile = static_cast<SWavFile*>(OutFile);
 
     //Check if the WAVFile is nullptr
     if (WAVFile == nullptr)
@@ -116,25 +119,25 @@ void SWAVLoader::UnLoad(void* OutFile)
     WAVFile->ClearAsset();
 }
 
-SSharedPtr<SAsset> SWAVLoader::CreateAsset()
+SSharedPtr<SAsset> SWavLoader::CreateAsset()
 {
-    return std::make_shared<SWAVFile>();
+    return std::make_shared<SWavFile>();
 }
 
-bool SWAVLoader::ReadRIFFHeader(SFileReader& File)
+bool SWavLoader::ReadRIFFHeader(SFileReader& File)
 {
     // Read the first 4 bytes (should be "RIFF")
     SChar ChunkID[5] = { 0 }; // Buffer for chunk ID (4 chars + null)
     SUInt32 ChunkSize = 0;    // Variable for chunk size value
 
     // Read first 4 bytes (should be "RIFF")
-    File.read(ChunkID, 4);    
+    File.read(ChunkID, 4);
 
     // Check if the RIFF header is valid
     if (strcmp(ChunkID, RIFF) != 0)
     {
-        // Log missing RIFF
-        S_LOG_ERROR(LogAudio, TEXT("Invalid RIFF header in WAV file"));
+        // Log an error if the RIFF header is invalid
+        S_LOG_ERROR(LogAudio, TEXT("Invalid RIFF header in WAV file. Expected 'RIFF'."));
 
         // Abort on invalid header
         return false;
@@ -149,8 +152,8 @@ bool SWAVLoader::ReadRIFFHeader(SFileReader& File)
     // Check if the format identifier is "WAVE"
     if (strcmp(ChunkID, WAVE) != 0)
     {
-        // Log missing WAVE tag
-        S_LOG_ERROR(LogAudio, TEXT("Missing WAVE format identifier"));
+        // Log an error if the WAVE format identifier is missing or incorrect
+        S_LOG_ERROR(LogAudio, TEXT("Missing or invalid WAVE format identifier. Expected 'WAVE'."));
 
         // Abort on invalid format
         return false;
@@ -159,7 +162,7 @@ bool SWAVLoader::ReadRIFFHeader(SFileReader& File)
     return true;
 }
 
-bool SWAVLoader::ProcessChunk(SFileReader& File, SWAVFile* OutFile, bool& FmtFound, bool& DataFound)
+bool SWavLoader::ProcessChunk(SFileReader& File, SWavFile* OutFile, bool& FmtFound, bool& DataFound)
 {
     // Read current chunk ID and size
     SChar ChunkID[5] = { 0 };   // Buffer for chunk ID (4 chars + null)
@@ -207,7 +210,7 @@ bool SWAVLoader::ProcessChunk(SFileReader& File, SWAVFile* OutFile, bool& FmtFou
     return true;
 }
 
-bool SWAVLoader::ProcessFmtChunk(SFileReader& File, SWAVFile* OutFile, SUInt32 ChunkSize)
+bool SWavLoader::ProcessFmtChunk(SFileReader& File, SWavFile* OutFile, SUInt32 ChunkSize)
 {
     // Read basic format information from the fmt chunk
     File.read(reinterpret_cast<SChar*>(&OutFile->AudioFormat), sizeof(OutFile->AudioFormat));
@@ -258,7 +261,7 @@ bool SWAVLoader::ProcessFmtChunk(SFileReader& File, SWAVFile* OutFile, SUInt32 C
     return true;
 }
 
-bool SWAVLoader::ProcessDataChunk(SFileReader& File, SWAVFile* OutFile, SUInt32 ChunkSize)
+bool SWavLoader::ProcessDataChunk(SFileReader& File, SWavFile* OutFile, SUInt32 ChunkSize)
 {
     // Handle different audio formats (PCM, IMA ADPCM, MS ADPCM)
     if (OutFile->AudioFormat == 1) // PCM format
@@ -266,41 +269,54 @@ bool SWAVLoader::ProcessDataChunk(SFileReader& File, SWAVFile* OutFile, SUInt32 
         // Handle different PCM bit depths
         if (OutFile->BitsPerSample == 8 || OutFile->BitsPerSample == 16 || OutFile->BitsPerSample == 24 || OutFile->BitsPerSample == 32)
         {
-            // Read data
+            // Read PCM data
             ProcessPCM(File, OutFile, ChunkSize);
+            S_LOG(LogAudio, TEXT("Processing PCM data with %u bits per sample."), OutFile->BitsPerSample);
         }
         else
         {
             // Log unsupported PCM bit depth
-            S_LOG_ERROR(LogAudio, TEXT("Unsupported PCM bit depth: %u"), OutFile->BitsPerSample);
+            S_LOG_ERROR(LogAudio, TEXT("Unsupported PCM bit depth: %u. Skipping data."), OutFile->BitsPerSample);
 
             // Skip unsupported bit depth
-            File.seekg(ChunkSize, std::ios::cur); 
+            File.seekg(ChunkSize, std::ios::cur);
+
+            //Return false
+            return false;
         }
     }
     else if (OutFile->AudioFormat == 17) // IMA ADPCM
     {
-        // Log warning for unsupported format
-        S_LOG_WARNING(LogAudio, TEXT("IMA ADPCM format not supported, skipping data"));
+        // Log warning for unsupported IMA ADPCM format
+        S_LOG_WARNING(LogAudio, TEXT("IMA ADPCM format not supported. Skipping data."));
 
         // Skip IMA ADPCM data
         File.seekg(ChunkSize, std::ios::cur);
+
+        //Return false
+        return false;
     }
     else if (OutFile->AudioFormat == 2) // MS ADPCM
     {
-        // Log warning for unsupported format
-        S_LOG_WARNING(LogAudio, TEXT("Microsoft ADPCM not supported, skipping data"));
+        // Log warning for unsupported MS ADPCM format
+        S_LOG_WARNING(LogAudio, TEXT("Microsoft ADPCM format not supported. Skipping data."));
 
         // Skip MS ADPCM data
         File.seekg(ChunkSize, std::ios::cur);
+
+        //Return false
+        return false;
     }
     else
     {
         // Log warning for unknown audio format
-        S_LOG_WARNING(LogAudio, TEXT("Unknown audio format: %u, skipping data"), OutFile->AudioFormat);
+        S_LOG_WARNING(LogAudio, TEXT("Unknown audio format: %u. Skipping data."), OutFile->AudioFormat);
 
         // Skip unknown format data
         File.seekg(ChunkSize, std::ios::cur);
+
+        //Return false
+        return false;
     }
 
     // Update total sample frame count based on data size
@@ -308,12 +324,17 @@ bool SWAVLoader::ProcessDataChunk(SFileReader& File, SWAVFile* OutFile, SUInt32 
     {
         // Calculate total sample frames
         OutFile->TotalSampleFrames = static_cast<SUInt32>(OutFile->Data.size() / OutFile->NumChannels);
+        S_LOG(LogAudio, TEXT("Calculated TotalSampleFrames: %u."), OutFile->TotalSampleFrames);
+    }
+    else
+    {
+        S_LOG_WARNING(LogAudio, TEXT("Invalid bits per sample or number of channels. Unable to calculate total sample frames."));
     }
 
     return true;
 }
 
-void SWAVLoader::ProcessPCM(SFileReader& File, SWAVFile* OutFile, SUInt32 ChunkSize)
+void SWavLoader::ProcessPCM(SFileReader& File, SWavFile* OutFile, SUInt32 ChunkSize)
 {
     //Clear
     OutFile->Data.clear();
@@ -325,7 +346,7 @@ void SWAVLoader::ProcessPCM(SFileReader& File, SWAVFile* OutFile, SUInt32 ChunkS
     File.read(reinterpret_cast<SChar*>(OutFile->Data.data()), ChunkSize);
 }
 
-bool SWAVLoader::ProcessFactChunk(SFileReader& File, SWAVFile* OutFile, SUInt32 ChunkSize)
+bool SWavLoader::ProcessFactChunk(SFileReader& File, SWavFile* OutFile, SUInt32 ChunkSize)
 {
     // Variable to hold the number of sample frames from the FACT chunk
     SUInt32 SampleFrames = 0;

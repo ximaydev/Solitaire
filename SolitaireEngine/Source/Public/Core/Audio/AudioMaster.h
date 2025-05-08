@@ -11,7 +11,7 @@ public:
     SAudioMaster(IXAudio2* AudioEngine);
 
     /** Destructor */
-    ~SAudioMaster();
+    virtual ~SAudioMaster();
 
     /** Sets the master volume for all audio. */
     void SetMasterVolume(float NewMasterVolume);
@@ -27,5 +27,5 @@ protected:
     IXAudio2MasteringVoice* MasteringVoice = {};
 
     /** Master volume level. */
-    float MasterVolume = 0.1f;
+    float MasterVolume = 0.5f;
 };

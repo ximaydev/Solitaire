@@ -36,10 +36,10 @@ protected:
 	SAtomic<bool> IsRunning = true;
 
 	/** File writer used for writing to the log file */
-	SFileWriter LogFileWriter = {};
+	SWFileWriter LogFileWriter = {};
 
 	/** Thread-safe queue of log messages */
-	SQueue<SString> LogQueue = {};
+	SQueue<SWString> LogQueue = {};
 
 	/** Condition variable for signaling new messages */
 	SConditionVariable Queue_CV = {};
@@ -52,5 +52,5 @@ protected:
 
 private:
 	/** Generates a unique log file name based on the current date and time. */
-	SString GenerateLogFileName() const;
+	SWString GenerateLogFileName() const;
 };

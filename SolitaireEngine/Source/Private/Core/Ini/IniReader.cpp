@@ -1,40 +1,39 @@
 #include "SolitaireEnginePCH.h"
-#include "Core/Ini/IniFileReader.h"
 
-void SINIFileReader::LoadFromFile(const SWString& FileName, SINIConfigMap& ConfigFileMap)
+void SIniFileReader::LoadFromFile(const SWString& FileName, SIniConfigMap& ConfigFileMap)
 {
     // Check if the file name ends with the '.ini' extension
     if (!FileName.ends_with(TEXT(".ini")))
     {
-        S_LOG_ERROR(LogConfig, TEXT("Invalid file format: '%s' is not an .ini file or may be corrupted."), FileName.c_str());
+        S_LOG_ERROR(LogConfig, TEXT("Invalid file format: '%s' is not an .ini file, or it may be corrupted."), FileName.c_str());
         return;
     }
 
     // String to hold each line from the file
-    SString Line;
+    SWString Line;
 
-    // Attempt to open the file using the UTF-8 encoding
-    SFileReader FileReader(Core::Paths::GProjectConfigPath + TEXT("\\") + FileName, std::ios::in);
+    // Attempt to open the file
+    SWFileReader FileReader(Core::Paths::GProjectConfigPath + TEXT("\\") + FileName, std::ios::in);
 
     // Verify that the file was successfully opened
     if (!FileReader.is_open())
     {
-        S_LOG_ERROR(LogConfig, TEXT("Failed to open file '%s'."), FileName.c_str());
+        S_LOG_ERROR(LogConfig, TEXT("Failed to open the INI file '%s'. The file may not exist or there could be a permissions issue."), FileName.c_str());
         return;
     }
 
     // List of prefixes that denote a comment line
-    constexpr std::array<std::string_view, 2> CommentPrefixes = { ";", "##" };
+    constexpr SArray<SWStringView, 2> CommentPrefixes = { TEXT(";"), TEXT("##") };
 
     // Characters used to denote the start and end of a section
-    constexpr char SectionStart = '[';
-    constexpr char SectionEnd = ']';
+    constexpr SWideChar SectionStart = TEXT('[');
+    constexpr SWideChar SectionEnd   = TEXT(']');
 
     // Counter for keeping track of the current line number
     SUInt32 LineCounter = 1;
 
     // Currently active section name
-    SString CurrentSection;
+    SWString CurrentSection;
 
     // Process the file line by line
     while (std::getline(FileReader, Line))
@@ -66,10 +65,15 @@ void SINIFileReader::LoadFromFile(const SWString& FileName, SINIConfigMap& Confi
             CurrentSection = Line.substr(StartPosition, EndPosition - StartPosition + 1);
 
             // Check if the section name is empty or "[]", which means it has no name
-            if (CurrentSection.empty() || CurrentSection == "[]")
+            if (CurrentSection.empty() || CurrentSection == TEXT("[]"))
             {
+                // Clear the current section name as it's invalid
                 CurrentSection.clear();
-                S_LOG_WARNING(LogConfig, TEXT("Unnamed section is not allowed at line %d. Section %s will be skipped."), LineCounter, SStringLibrary::StringToWideString(CurrentSection).c_str());
+
+                // Log a warning with the line number and the invalid section name
+                S_LOG_WARNING(LogConfig, TEXT("Invalid or empty section name found at line %d. Skipping section: '%s'."), LineCounter, CurrentSection.c_str());
+
+                // Increment the line counter and skip this section
                 LineCounter++;
                 continue;
             }
@@ -78,9 +82,12 @@ void SINIFileReader::LoadFromFile(const SWString& FileName, SINIConfigMap& Confi
             ConfigFileMap.try_emplace(CurrentSection);
         }
         // Section has only one bracket or is malformed
-        else if (StartPosition != SString::npos || EndPosition != SString::npos)
+        else if (StartPosition == SString::npos || EndPosition == SString::npos)
         {
-            S_LOG_WARNING(LogConfig, TEXT("Malformed section at line %d. Skipping: %s"), LineCounter, SStringLibrary::StringToWideString(Line).c_str());
+            // Log a warning with line number and the malformed section
+            S_LOG_WARNING(LogConfig, TEXT("Malformed section at line %d. Section has unmatched brackets or invalid format: %s"), LineCounter, Line.c_str());
+
+            // Clear the current section name since it’s invalid
             CurrentSection.clear();
         }
         // Handle key-value pair lines inside a valid section
@@ -88,21 +95,22 @@ void SINIFileReader::LoadFromFile(const SWString& FileName, SINIConfigMap& Confi
         {
             // Attempt to locate the first key-value separator character
             // Valid separators include '=' or ':'
-            SSize SeparatorPos = Line.find_first_of("=:");
+            SSize SeparatorPos = Line.find_first_of(TEXT("=:"));
 
             // Proceed only if a separator was found
             if (SeparatorPos != SString::npos)
             {
                 // Extract the key (everything before the separator)
-                SString Key = Line.substr(0, SeparatorPos);
+                SWString Key = Line.substr(0, SeparatorPos);
 
                 // Extract the value (everything after the separator)
-                SString Value = Line.substr(SeparatorPos + 1);
+                SWString Value = Line.substr(SeparatorPos + 1);
 
                 // Check for an empty key and log a warning
                 if (Key.empty())
                 {
-                    S_LOG_WARNING(LogConfig, TEXT("Missing key at line %d. Skipping entry."), LineCounter);
+                    // Log a warning with the line number and specify that the key is missing
+                    S_LOG_WARNING(LogConfig, TEXT("Missing key at line %d. The entry will be skipped."), LineCounter);
                     LineCounter++;
                     continue;
                 }
@@ -110,7 +118,8 @@ void SINIFileReader::LoadFromFile(const SWString& FileName, SINIConfigMap& Confi
                 // Check for an empty value and log a warning
                 if (Value.empty())
                 {
-                    S_LOG_WARNING(LogConfig, TEXT("Missing value at line %d. Skipping entry."), LineCounter);
+                    // Log a warning with the line number and specify that the value is missing
+                    S_LOG_WARNING(LogConfig, TEXT("Missing value for key '%s' at line %d. The entry will be skipped."), Key.c_str(), LineCounter);
                     LineCounter++;
                     continue;
                 }
@@ -120,13 +129,14 @@ void SINIFileReader::LoadFromFile(const SWString& FileName, SINIConfigMap& Confi
             }
             else
             {
-                // If no valid separator was found, log an invalid format warning
-                S_LOG_WARNING(LogConfig, TEXT("Invalid key-value format at line %d. Skipping: %s"), LineCounter, SStringLibrary::StringToWideString(Line).c_str());
+                // If no valid separator was found, log an invalid format warning with details
+                S_LOG_WARNING(LogConfig, TEXT("Invalid key-value format at line %d. The line '%s' will be skipped due to missing or invalid separator."), LineCounter, Line.c_str());
             }
         }
         else
         {
-            S_LOG_WARNING(LogConfig, TEXT("Section is empty at line %d. Skipping: %s"), LineCounter, SStringLibrary::StringToWideString(Line).c_str());
+            // Log a warning if the section is empty, indicating the issue with the current line
+            S_LOG_WARNING(LogConfig, TEXT("Empty section at line %d. The line '%s' will be skipped."), LineCounter, Line.c_str());
         }
 
         //Increment Line Counter

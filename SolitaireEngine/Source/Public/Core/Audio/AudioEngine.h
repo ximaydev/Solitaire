@@ -1,10 +1,9 @@
 #pragma once
 #include "Globals.h"
-#include <xaudio2.h>
-#include "Core/Audio/WAVLoader.h" 
 
 /** Forward Declarations */
 class SAudioMaster;
+class SWavFile;
 
 /** Main audio engine class responsible for initializing and managing the audio system. */
 class SOLITAIRE_ENGINE_API SAudioEngine
@@ -16,15 +15,15 @@ public:
     /** Sets the volume for a specific audio group. */
     void SetVolume(const SWString& GroupName, SFloat NewVolume);
 
-    /** Sets the volume for Master. */
-    void SetMasterVolume(SFloat NewMasterVolume);
-
     /** Gets the volume level for a specific audio group. */
     SFloat GetVolume(const SWString& GroupName);
 
+    /** Sets the volume for Master. */
+    void SetMasterVolume(SFloat NewMasterVolume);
+
     /** Plays a sound from a specific group. */
     void PlaySound(const SWString& FilePath, const SWString& GroupName);
-    void PlaySound(const SWAVFile* WAVFile, XAUDIO2_BUFFER& Buffer, const SWString& GroupName);
+    void PlaySound(const SWavFile* WavFile, XAUDIO2_BUFFER& Buffer, const SWString& GroupName);
 
     /** Cleans up and shuts down the audio engine. */
     virtual void Shutdown();
@@ -44,9 +43,6 @@ protected:
 
     /** Map of submix voices for grouping different types of audio (e.g., Music, SFX). */
     SUnorderedMap<SWString, IXAudio2SubmixVoice*> Submixes;
-
-    /** Map of audio groups and their associated source voices. */
-    SUnorderedMap<SWString, SVector<IXAudio2SourceVoice>> SoundGroups;
 
     /** Volume levels for each audio group. */
     SUnorderedMap<SWString, SFloat> GroupVolumes;

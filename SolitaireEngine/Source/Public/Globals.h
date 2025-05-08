@@ -7,9 +7,6 @@
 	#define SOLITAIRE_ENGINE_API __declspec(dllimport)
 #endif
 
-/** Alias for the std::filesystem namespace for cleaner code */
-namespace fs = std::filesystem;
-
 namespace Core::Paths
 {
 	/** Global variable to store the project root path */
@@ -37,6 +34,5 @@ namespace Core::Paths
 	SOLITAIRE_ENGINE_API inline const SWString& GetProjectSavedPath() { return GProjectSavedPath; }
 
 	/** Creates necessary project directories if they do not already exist. */
-	//TODO: Delete SOLITAIRE_ENGINE_API, we don't want to export it
-	SOLITAIRE_ENGINE_API void CreateDirectories();
+	void CreateDirectories();
 }

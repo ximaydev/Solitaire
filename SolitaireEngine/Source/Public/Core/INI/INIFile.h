@@ -1,14 +1,15 @@
 #pragma once
 #include "Globals.h"
 
-class SOLITAIRE_ENGINE_API SINIFile
+/** This class is responsible for accessing values from an INI config file. */
+class SOLITAIRE_ENGINE_API SIniFile
 {
-    friend class SINIFileManager;
+    friend class SIniFileManager;
 
 public:
 	/** Get typed value from the configuration map using a section name and key name. */
 	template<typename T>
-	T GetValueFromKey(const SString& SectionName, const SString& KeyName) const;
+	T GetValueFromKey(const SWString& SectionName, const SWString& KeyName) const;
 
 #if DEBUG
     /** This function prints out the loaded.ini file's contents */
@@ -17,23 +18,33 @@ public:
 
 protected:
 	/** Holds the contents of the INI file as a two-level map: Section -> (Key -> Value). */
-	SINIConfigMap ConfigFileMap = {};
+	SIniConfigMap ConfigFileMap = {};
 };
 
 template<typename T>
-T SINIFile::GetValueFromKey(const SString& SectionName, const SString& KeyName) const
+T SIniFile::GetValueFromKey(const SWString& SectionName, const SWString& KeyName) const
 {
     // Try to find the section in the configuration map
-    auto sectionIt = ConfigFileMap.find(SectionName);
-    if (sectionIt != ConfigFileMap.end())
+    auto SectionIterator = ConfigFileMap.find(SectionName);
+    if (SectionIterator != ConfigFileMap.end())
     {
         // If section exists, try to find the key within that section
-        auto keyIt = sectionIt->second.find(KeyName);
-        if (keyIt != sectionIt->second.end())
+        auto KeyIterator = SectionIterator->second.find(KeyName);
+        if (KeyIterator != SectionIterator->second.end())
         {
             // If key is found, convert the associated string value to the requested type
-            return SStringLibrary::Convert<T>(keyIt->second);
+            return SStringLibrary::Convert<T>(KeyIterator->second);
         }
+        else
+        {
+            // Log a warning if the key was not found in the section
+            S_LOG_WARNING(LogConfig, TEXT("Key '%s' not found in section '%s'"), KeyName.c_str(), SectionName.c_str());
+        }
+    }
+    else
+    {
+        // Log a warning if the section was not found
+        S_LOG_WARNING(LogConfig, TEXT("Section '%s' not found in the config."), SectionName.c_str());
     }
 
     // Return default value of T if section or key is not found

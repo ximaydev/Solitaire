@@ -1,8 +1,6 @@
 #pragma once
 #include "Globals.h"
 
-class SAsset;
-
 /** Registry for storing and accessing loaded assets. */
 class SOLITAIRE_ENGINE_API SAssetRegistry
 {

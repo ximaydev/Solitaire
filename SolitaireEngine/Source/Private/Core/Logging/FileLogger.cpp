@@ -1,20 +1,15 @@
 #include "SolitaireEnginePCH.h"
-#include "Core/Logger/FileLogger.h"
-#include <conio.h>
 
 SFileLogger::SFileLogger()
 {
 	//Open (create) and generate LogFile Name
-	LogFileWriter = SFileWriter(GenerateLogFileName(), std::ios::out | std::ios::ate);
+	LogFileWriter = SWFileWriter(GenerateLogFileName(), std::ios::out | std::ios::ate);
 	
 	// Check if the LogFileWriter is open
 	if (!LogFileWriter.is_open())
 	{
 		// Display an error message to the user
 		std::cout << "Failed to initialize File Logger. The log file could not be opened. Press any key to exit.\n";
-
-		// Wait for user input before exiting (you can replace this with a more meaningful condition if needed)
-		_getch();
 
 		// Exit the program with an error code (1 indicates failure)
 		exit(1);
@@ -69,7 +64,7 @@ void SFileLogger::Log(const SWStringView& Category, ELogLevel LogLevel, const SW
 	LogLevelToString(LogLevel, StringLogLevel);
 
 	// Get the current time as a string using the format "HH-MM-SS"
-	STimeLibrary::GetCurrentTimeAsString(TEXT("%H_%M_%S"), StringCurrentTime);
+	SStringLibrary::GetCurrentTimeAsString(TEXT("%H_%M_%S"), StringCurrentTime);
 
 	va_list args;
 	va_start(args, Format);
@@ -110,7 +105,7 @@ void SFileLogger::Log(const SWStringView& Category, ELogLevel LogLevel, const SW
 		std::lock_guard<SMutex> Lock(QueueMutex);
 		
 		// Convert the wide string to a narrow string and enqueue it for logging
-		LogQueue.push(std::move(SStringLibrary::WideStringToString(FullMessage)));
+		LogQueue.push(std::move(FullMessage));
 	}
 
 	// Notify the background logging thread that a new message is available
@@ -165,13 +160,13 @@ void SFileLogger::ProcessQueue()
 	}
 }
 
-SString SFileLogger::GenerateLogFileName() const
+SWString SFileLogger::GenerateLogFileName() const
 {
 	// Get the current time as a string.
-	SString Time;
-	STimeLibrary::GetCurrentTimeAsString(SString("%H_%M_%S"), Time);
+	SWString Time;
+	SStringLibrary::GetCurrentTimeAsString(SWString(TEXT("%H_%M_%S")), Time);
 	
 	// Prefix the formatted time with "Log_" to create the log file name.
 	// Return the full path for the log file (including the file name).
-	return SStringLibrary::WideStringToString(Core::Paths::GProjectSavedPath) + "\\Log_" + Time + ".txt";
+	return Core::Paths::GProjectSavedPath + TEXT("\\Log_") + Time + TEXT(".txt");
 }

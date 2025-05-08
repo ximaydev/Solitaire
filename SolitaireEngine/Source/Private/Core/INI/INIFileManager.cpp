@@ -1,38 +1,50 @@
 #include "SolitaireEnginePCH.h"
 #include "Core/INI/INIFileManager.h"
 
-SINIFileManager* SINIFileManager::GetInstance()
+SIniFileManager* SIniFileManager::GetInstance()
 {
-	static SUniquePtr<SINIFileManager> INIFileManager = std::make_unique<SINIFileManager>();
+	// Create the singleton instance of SIniFileManager if it doesn't already exist.
+	static SUniquePtr<SIniFileManager> INIFileManager = std::make_unique<SIniFileManager>();
 	return INIFileManager.get();
 }
 
-void SINIFileManager::GetConfigFileNames(SVector<SPath>& OutConfigFileNames) const
+void SIniFileManager::GetConfigFileNames(SVector<SPath>& OutConfigFileNames) const
 {
-	//Reserve memory
-	OutConfigFileNames.reserve(5);
+	// Counter to track the number of configuration files found
+	SUInt32 Counter = 0;
 
-	// Iterate through all files and directories in the configuration path
+	// First, count the number of regular files in the config directory (recursively)
+	for (const auto& Entry : fs::recursive_directory_iterator(Core::Paths::GProjectConfigPath))
+	{
+		// If the entry is a regular file (not a directory), increment the counter
+		if (fs::is_regular_file(Entry))
+			Counter++;
+	}
+
+	// Reserve memory in the output vector to avoid reallocations during the file name collection
+	OutConfigFileNames.reserve(Counter);
+
+	// Iterate through all files in the configuration path (non-recursively)
 	for (const auto& Path : fs::directory_iterator(Core::Paths::GProjectConfigPath))
 	{
 		// Check if the current path is a regular file (not a directory or symlink)
 		if (Path.is_regular_file())
 		{
-			// Add the full file path (as wide string) to the output vector
+			// Add the filename (without full path) to the output vector
 			OutConfigFileNames.push_back(Path.path().filename());
 
-			// Log the found file path for debugging or informational purposes
-			S_LOG(LogConfig, TEXT("We found %s "), Path.path().wstring().c_str());
+			// Log the found file path
+			S_LOG(LogConfig, TEXT("Found config file: %s"), Path.path().wstring().c_str());
 		}
 	}
 
-	//Shrink
+	// Shrink the vector to fit the number of elements it contains to optimize memory usage
 	OutConfigFileNames.shrink_to_fit();
 }
 
-void SINIFileManager::LoadConfigFilesFromDisk()
+void SIniFileManager::LoadConfigFilesFromDisk()
 {
-	// Log: Starting to load configuration files from disk into memory
+	// Starting to load configuration files from disk into memory
 	S_LOG(LogConfig, TEXT("Starting to load config files from disk into memory"));
 
 	// Get config file names
@@ -43,20 +55,20 @@ void SINIFileManager::LoadConfigFilesFromDisk()
 	for (SWString ConfigFileName : ConfigFileNames)
 	{
 		// Create a shared pointer for the new INIFile
-		SSharedPtr<SINIFile> INIFile = std::make_shared<SINIFile>();
+		SSharedPtr<SIniFile> INIFile = std::make_shared<SIniFile>();
 
 		// Load the configuration file into the INIFile
-		SINIFileReader::LoadFromFile(ConfigFileName, INIFile->ConfigFileMap);
+		SIniFileReader::LoadFromFile(ConfigFileName, INIFile->ConfigFileMap);
 
 		// Add the loaded INIFile to the map of config files
 		ConfigFiles.emplace(ConfigFileName, INIFile);
 	}
 
-	// Log: Finished loading configuration files from disk into memory
+	// Finished loading configuration files from disk into memory
 	S_LOG(LogConfig, TEXT("Finished loading config files from disk into memory"));
 }
 
-SSharedPtr<SINIFile> SINIFileManager::GetConfigFile(const SWString& FileName)
+SSharedPtr<SIniFile> SIniFileManager::GetConfigFile(const SWString& FileName)
 {
 	return ConfigFiles.at(FileName + TEXT(".ini"));
 }
