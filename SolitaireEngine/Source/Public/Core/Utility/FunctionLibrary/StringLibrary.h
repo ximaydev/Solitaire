@@ -99,9 +99,17 @@ inline T SStringLibrary::Convert(const SBasicString<CharT, Traits, Allocator>& S
 			return LowerString == TEXT("true") || LowerString == TEXT("1");
 		}
 	}
-	else if constexpr (std::is_same_v<T, SString> || std::is_same_v<T, SWString>)
+	else if constexpr (std::is_same_v<T, SBasicString<CharT, Traits, Allocator>>)
 	{
 		return String;
+	}
+	else if constexpr (std::is_same_v<T, SString>)
+	{
+		return WideStringToString(String);
+	}
+	else if constexpr (std::is_same_v<T, SWString>)
+	{
+		return StringToWideString(String);
 	}
 	else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>)
 	{

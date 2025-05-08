@@ -1,6 +1,6 @@
 #include "SolitaireEnginePCH.h"
 
-void SIniFileReader::LoadFromFile(const SWString& FileName, SIniConfigMap& ConfigFileMap)
+void SIniReader::LoadFromFile(const SWString& FileName, SIniConfigMap& ConfigFileMap)
 {
     // Check if the file name ends with the '.ini' extension
     if (!FileName.ends_with(TEXT(".ini")))
@@ -13,7 +13,7 @@ void SIniFileReader::LoadFromFile(const SWString& FileName, SIniConfigMap& Confi
     SWString Line;
 
     // Attempt to open the file
-    SWFileReader FileReader(Core::Paths::GProjectConfigPath + TEXT("\\") + FileName, std::ios::in);
+    SWFileReader FileReader(Core::Paths::GetProjectConfigPath() + FileName, std::ios::in);
 
     // Verify that the file was successfully opened
     if (!FileReader.is_open())
@@ -82,7 +82,7 @@ void SIniFileReader::LoadFromFile(const SWString& FileName, SIniConfigMap& Confi
             ConfigFileMap.try_emplace(CurrentSection);
         }
         // Section has only one bracket or is malformed
-        else if (StartPosition == SString::npos || EndPosition == SString::npos)
+        else if (StartPosition != SString::npos || EndPosition != SString::npos)
         {
             // Log a warning with line number and the malformed section
             S_LOG_WARNING(LogConfig, TEXT("Malformed section at line %d. Section has unmatched brackets or invalid format: %s"), LineCounter, Line.c_str());

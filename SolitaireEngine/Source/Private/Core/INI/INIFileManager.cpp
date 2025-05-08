@@ -14,7 +14,7 @@ void SIniFileManager::GetConfigFileNames(SVector<SPath>& OutConfigFileNames) con
 	SUInt32 Counter = 0;
 
 	// First, count the number of regular files in the config directory (recursively)
-	for (const auto& Entry : fs::recursive_directory_iterator(Core::Paths::GProjectConfigPath))
+	for (const auto& Entry : fs::recursive_directory_iterator(Core::Paths::GetProjectConfigPath()))
 	{
 		// If the entry is a regular file (not a directory), increment the counter
 		if (fs::is_regular_file(Entry))
@@ -25,16 +25,31 @@ void SIniFileManager::GetConfigFileNames(SVector<SPath>& OutConfigFileNames) con
 	OutConfigFileNames.reserve(Counter);
 
 	// Iterate through all files in the configuration path (non-recursively)
-	for (const auto& Path : fs::directory_iterator(Core::Paths::GProjectConfigPath))
+	for (const auto& Path : fs::directory_iterator(Core::Paths::GetProjectConfigPath()))
 	{
 		// Check if the current path is a regular file (not a directory or symlink)
 		if (Path.is_regular_file())
 		{
-			// Add the filename (without full path) to the output vector
-			OutConfigFileNames.push_back(Path.path().filename());
+			// Get File Name
+			const SWString& FileName = Path.path().filename().wstring();
 
-			// Log the found file path
-			S_LOG(LogConfig, TEXT("Found config file: %s"), Path.path().wstring().c_str());
+			// Get extension and check if the file is .ini
+			SWString Extension;
+			SStringLibrary::GetFileExtension(FileName, Extension);
+
+			if (Extension == TEXT(".ini"))
+			{
+				// Add the filename (without full path) to the output vector
+				OutConfigFileNames.push_back(FileName);
+
+				// Log the found file path
+				S_LOG(LogConfig, TEXT("Found config file: %s"), FileName.c_str());
+			}
+			else
+			{
+				// Log ignored file with its extension
+				S_LOG_WARNING(LogConfig, TEXT("Ignored file (not .ini): %s (Extension: %s)"), FileName.c_str(), Extension.c_str());
+			}
 		}
 	}
 
@@ -58,7 +73,7 @@ void SIniFileManager::LoadConfigFilesFromDisk()
 		SSharedPtr<SIniFile> INIFile = std::make_shared<SIniFile>();
 
 		// Load the configuration file into the INIFile
-		SIniFileReader::LoadFromFile(ConfigFileName, INIFile->ConfigFileMap);
+		SIniReader::LoadFromFile(ConfigFileName, INIFile->ConfigFileMap);
 
 		// Add the loaded INIFile to the map of config files
 		ConfigFiles.emplace(ConfigFileName, INIFile);
@@ -70,6 +85,6 @@ void SIniFileManager::LoadConfigFilesFromDisk()
 
 SSharedPtr<SIniFile> SIniFileManager::GetConfigFile(const SWString& FileName)
 {
-	return ConfigFiles.at(FileName + TEXT(".ini"));
+	return ConfigFiles.at(FileName);
 }
 

@@ -168,5 +168,5 @@ SWString SFileLogger::GenerateLogFileName() const
 	
 	// Prefix the formatted time with "Log_" to create the log file name.
 	// Return the full path for the log file (including the file name).
-	return Core::Paths::GProjectSavedPath + TEXT("\\Log_") + Time + TEXT(".txt");
+	return Core::Paths::GetProjectSavedPath() + TEXT("Log_") + Time + TEXT(".txt");
 }

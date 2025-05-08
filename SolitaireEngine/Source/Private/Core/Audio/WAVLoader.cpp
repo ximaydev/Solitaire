@@ -1,5 +1,8 @@
 #include "SolitaireEnginePCH.h"
 
+//Register SWavLoader
+REGISTER_ASSET_LOADER(SWavLoader)
+
 #define RIFF "RIFF"      // Define RIFF chunk identifier
 #define WAVE "WAVE"      // Define WAVE format identifier
 #define FMT  "fmt "      // Define format chunk identifier
@@ -24,8 +27,11 @@ void SWavFile::ClearAsset()
     Data.shrink_to_fit();
 }
 
-void SWavLoader::Load(const SWString& FilePath, void* OutFile)
+void SWavLoader::Load(const SWString& FilePath, SAsset* OutFile)
 {
+    // Start loading .wav file
+    S_LOG(LogAudio, TEXT("Started loading audio file: %s"), FilePath.c_str());
+
     //Check if the OutFile is nullptr
     if (OutFile == nullptr)
     {
@@ -92,11 +98,11 @@ void SWavLoader::Load(const SWString& FilePath, void* OutFile)
     // Mark WAV file as valid
     WAVFile->IsValid = true;
 
-    // Return loaded data
-    return;
+    // Successfully loaded .wav file
+    S_LOG(LogAudio, TEXT("Finished loading audio file: %s"), FilePath.c_str());
 }
 
-void SWavLoader::UnLoad(void* OutFile)
+void SWavLoader::UnLoad(SAsset* OutFile)
 {
     //Check if the OutFile is nullptr
     if (OutFile == nullptr)
@@ -122,6 +128,11 @@ void SWavLoader::UnLoad(void* OutFile)
 SSharedPtr<SAsset> SWavLoader::CreateAsset()
 {
     return std::make_shared<SWavFile>();
+}
+
+SWString SWavLoader::GetSupportedExtension()
+{
+    return TEXT(".wav");
 }
 
 bool SWavLoader::ReadRIFFHeader(SFileReader& File)
@@ -285,34 +296,12 @@ bool SWavLoader::ProcessDataChunk(SFileReader& File, SWavFile* OutFile, SUInt32 
             return false;
         }
     }
-    else if (OutFile->AudioFormat == 17) // IMA ADPCM
-    {
-        // Log warning for unsupported IMA ADPCM format
-        S_LOG_WARNING(LogAudio, TEXT("IMA ADPCM format not supported. Skipping data."));
-
-        // Skip IMA ADPCM data
-        File.seekg(ChunkSize, std::ios::cur);
-
-        //Return false
-        return false;
-    }
-    else if (OutFile->AudioFormat == 2) // MS ADPCM
-    {
-        // Log warning for unsupported MS ADPCM format
-        S_LOG_WARNING(LogAudio, TEXT("Microsoft ADPCM format not supported. Skipping data."));
-
-        // Skip MS ADPCM data
-        File.seekg(ChunkSize, std::ios::cur);
-
-        //Return false
-        return false;
-    }
     else
     {
-        // Log warning for unknown audio format
-        S_LOG_WARNING(LogAudio, TEXT("Unknown audio format: %u. Skipping data."), OutFile->AudioFormat);
+        // Log warning for unsupported IMA ADPCM format
+        S_LOG_WARNING(LogAudio, TEXT("AudioFormat %d is not supported. Skipping data."), OutFile->AudioFormat);
 
-        // Skip unknown format data
+        // Skip IMA ADPCM data
         File.seekg(ChunkSize, std::ios::cur);
 
         //Return false

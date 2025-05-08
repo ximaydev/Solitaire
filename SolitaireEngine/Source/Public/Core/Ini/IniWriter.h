@@ -2,15 +2,15 @@
 #include "Globals.h"
 
 /**
- * SIniFileWriter is a utility class designed for writing INI configuration files. It allows users to create and manage INI files with sections, key-value pairs, and comments.
+ * SIniWriter is a utility class designed for writing INI configuration files. It allows users to create and manage INI files with sections, key-value pairs, and comments.
  * The class provides methods for adding sections, key-value pairs, and comments, and it allows saving the entire structure to a file.
  */
-class SOLITAIRE_ENGINE_API SIniFileWriter
+class SOLITAIRE_ENGINE_API SIniWriter
 {
 public:
     /** Constructors */
-    SIniFileWriter() = delete;
-    explicit SIniFileWriter(const SWString& FileName);
+    SIniWriter() = delete;
+    explicit SIniWriter(const SWString& FileName);
 
     /** Adds a new section to the INI file. */
     void AddSection(const SString& SectionName);

@@ -65,7 +65,7 @@ protected:
     SUInt32 ChannelMask = 0;            /** Channel mask for WAVE_FORMAT_EXTENSIBLE */
     SUInt8 SubFormat[16] = { 0 };       /** GUID of the format (for WAVE_FORMAT_EXTENSIBLE) */
     SUInt32 TotalSampleFrames = 0;      /** Total number of audio frames (from 'fact' chunk or calculated) */
-    std::vector<SUInt8> Data = {};           /** Audio data (interleaved, as int32_t values) */
+    std::vector<SUInt8> Data = {};      /** Audio data (interleaved, as int32_t values) */
 };
 
 /** Class responsible for loading and parsing WAV files. */
@@ -73,13 +73,16 @@ class SOLITAIRE_ENGINE_API SWavLoader : public SAssetLoader
 {
 public:
     /** Loads a WAV file from the specified file path into the provided output object. */
-    virtual void Load(const SWString& FilePath, void* OutWAVFile) override;
+    virtual void Load(const SWString& FilePath, SAsset* OutWAVFile) override;
 
     /** Unloads the Wav file, releasing any associated resources. */
-    virtual void UnLoad(void* OutFile) override;
+    virtual void UnLoad(SAsset* OutFile) override;
 
     /** Creates a new WAV file asset. */
     virtual SSharedPtr<SAsset> CreateAsset() override;
+
+    /** Returns the file extension supported by this loader. */
+    virtual SWString GetSupportedExtension() override;
 
 protected:
     /** Reads and validates the RIFF header of a WAV file, returning true if valid */

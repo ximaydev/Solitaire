@@ -1,9 +1,9 @@
 #include "SolitaireEnginePCH.h"
 
-SIniFileWriter::SIniFileWriter(const SWString& FileName)
+SIniWriter::SIniWriter(const SWString& FileName)
 {
     // Open the file for writing, with appending mode
-    IniFileWriter.open(Core::Paths::GProjectConfigPath + TEXT("\\") + FileName, std::ios::out | std::ios::ate);
+    IniFileWriter.open(Core::Paths::GetProjectConfigPath() + FileName, std::ios::out | std::ios::ate);
 
     // Check if the file was successfully opened
     if (!IniFileWriter.is_open())
@@ -13,28 +13,28 @@ SIniFileWriter::SIniFileWriter(const SWString& FileName)
     }
 }
 
-void SIniFileWriter::AddSection(const SString& SectionName)
+void SIniWriter::AddSection(const SString& SectionName)
 {
     IniFileWriter << "\n[" << SectionName << ']' << '\n';  // Write section header
 }
 
-void SIniFileWriter::AddPairKeyValue(const SString& Key, const SString& Value)
+void SIniWriter::AddPairKeyValue(const SString& Key, const SString& Value)
 {
     IniFileWriter << Key << " = " << Value << '\n';  // Write key-value pair
 }
 
-void SIniFileWriter::AddComment(const SString& Comment)
+void SIniWriter::AddComment(const SString& Comment)
 {
     IniFileWriter << "##" << Comment << '\n';  // Write comment line
 }
 
-void SIniFileWriter::AddSectionWithComment(const SString& SectionName, const SString& Comment)
+void SIniWriter::AddSectionWithComment(const SString& SectionName, const SString& Comment)
 {
     AddComment(Comment);  // Add comment before section
     AddSection(SectionName);  // Add section
 }
 
-void SIniFileWriter::SaveToFile()
+void SIniWriter::SaveToFile()
 {
     IniFileWriter.flush();  // Ensure all data is written to file
     IniFileWriter.close();  // Close the file
