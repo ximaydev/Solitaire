@@ -19,8 +19,24 @@ SAudioMaster::SAudioMaster(IXAudio2* AudioEngine)
 		S_LOG(LogAudio, TEXT("Successfully created mastering voice on audio engine."));
 	}
 
-	// Set the master volume.
-	SetMasterVolume(MasterVolume);
+	// Get the default audio configuration file.
+	SSharedPtr<SIniFile> DefaultAudioConfigFile = SIniFileManager::GetInstance()->GetConfigFile(DefaultAudioConfig);
+
+	if (DefaultAudioConfigFile.get())
+	{
+		// If the config file exists, try to load the master volume.
+		if (SFloat LoadedVolume = DefaultAudioConfigFile->GetValueFromKey<SFloat>(SWString(TEXT("[AudioSettings]")), SWString(TEXT("MasterVolume"))))
+		{
+			// Set the master volume to the loaded value from the config file.
+			SetMasterVolume(LoadedVolume);
+			MasterVolume = LoadedVolume;
+		}
+	}
+	else
+	{
+		// If the config file doesn't exist, set the master volume to the default value.
+		SetMasterVolume(MasterVolume);
+	}
 
 	// Log the setting of the master volume.
 	S_LOG(LogAudio, TEXT("Master volume set to: %.2f"), MasterVolume);

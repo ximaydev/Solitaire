@@ -208,18 +208,28 @@ IXAudio2SubmixVoice* SAudioEngine::GetOrCreateSubmix(const SWString& GroupName, 
 		return nullptr;
 	}
 
+	// Log the successful creation of a new submix.
+	S_LOG(LogAudio, TEXT("Successfully created submix for group '%s' with Channels: %d, Sample Rate: %d."), GroupName.c_str(), Channels, SampleRate);
+
+	//Try to get the volume from the .ini file
+	if (DefaultAudioConfigFile)
+	{
+		//Load Value
+		float LoadedVolume = DefaultAudioConfigFile->GetValueFromKey<SFloat>(SWString(TEXT("[AudioSettings]")), GroupName);
+
+		// Apply the volume to the submix, factoring in the master volume.
+		NewSubmix->SetVolume(LoadedVolume * Master->GetMasterVolume());
+
+		// Store the newly created submix for future use.
+		Submixes[GroupName] = NewSubmix;
+
+		return NewSubmix;
+	}
+
 	// Set a default base volume for the new submix.
 	SFloat BaseVolume = 1.0f;
 	GroupVolumes[GroupName] = BaseVolume;
 
-	// Apply the volume to the submix, factoring in the master volume.
-	NewSubmix->SetVolume(BaseVolume * Master->GetMasterVolume());
-
-	// Log the successful creation of a new submix.
-	S_LOG(LogAudio, TEXT("Successfully created submix for group '%s' with Channels: %d, Sample Rate: %d."), GroupName.c_str(), Channels, SampleRate);
-
-	// Store the newly created submix for future use.
-	Submixes[GroupName] = NewSubmix;
-
 	return NewSubmix;
+
 }

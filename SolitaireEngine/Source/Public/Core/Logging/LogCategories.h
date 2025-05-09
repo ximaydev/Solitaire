@@ -8,7 +8,10 @@ meaning they are fast and do not incur runtime overhead. These string views
 point to string literals and can be used for logging messages with specific categories.
 */
 
-constexpr std::wstring_view LogTemp = TEXT("LogTemp");
-constexpr std::wstring_view LogFileSystem = TEXT("LogFileSystem");
-constexpr std::wstring_view LogConfig = TEXT("LogConfig");
-constexpr std::wstring_view LogAudio = TEXT("LogAudio");
+constexpr SWStringView LogTemp = TEXT("LogTemp");
+constexpr SWStringView LogFileSystem = TEXT("LogFileSystem");
+constexpr SWStringView LogConfig = TEXT("LogConfig");
+constexpr SWStringView LogAudio = TEXT("LogAudio");
+constexpr SWStringView LogInputSystem = TEXT("LogInputSystem");
+constexpr SWStringView LogSolitaireEngine = TEXT("LogSolitaireEngine");
+constexpr SWStringView LogConsoleRenderer = TEXT("LogConsoleRenderer");

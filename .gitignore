@@ -15,6 +15,7 @@ SolitaireGame/Binaries/
 *.exp
 *.dll
 *.pch
+*.txt
 
 # Exclude
 !Vendor/Binaries

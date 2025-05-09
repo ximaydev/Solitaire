@@ -20,3 +20,5 @@
 #include "Core/Asset/AssetRegistry.h"
 #include "Core/Asset/AssetLoader.h"
 #include "Core/Asset/Asset.h"
+#include "Core/Inputs/InputSystem.h"
+#include "Core/SolitaireEngine.h"

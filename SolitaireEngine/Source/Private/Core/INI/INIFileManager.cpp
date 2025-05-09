@@ -14,7 +14,7 @@ void SIniFileManager::GetConfigFileNames(SVector<SPath>& OutConfigFileNames) con
 	SUInt32 Counter = 0;
 
 	// First, count the number of regular files in the config directory (recursively)
-	for (const auto& Entry : fs::recursive_directory_iterator(Core::Paths::GetProjectConfigPath()))
+	for (const auto& Entry : fs::directory_iterator(Core::Paths::GetProjectConfigPath()))
 	{
 		// If the entry is a regular file (not a directory), increment the counter
 		if (fs::is_regular_file(Entry))

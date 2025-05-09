@@ -31,6 +31,9 @@ public:
     /** Pointer to the master volume controller. */
     SUniquePtr<SAudioMaster> Master;
 
+    /** Cached pointer to the DefaultAudio.ini file */
+    SIniFile* DefaultAudioConfigFile;
+
 protected:
     /** Initializes XAudio2 and creates the master voice. */
     virtual bool Initialize();

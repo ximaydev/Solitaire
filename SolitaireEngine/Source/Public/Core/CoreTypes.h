@@ -121,6 +121,14 @@ template<typename T, SUInt64 Size>
 using SArray = std::array<T, Size>;
 
 // =============================================
+// Rendering
+// =============================================
+
+// Represents a 2D grid coordinate: first = X, second = Y (x, y)
+template<typename T1, typename T2>
+using SGridPosition = std::pair<T1, T2>;
+
+// =============================================
 // Specialized Aliases
 // =============================================
 

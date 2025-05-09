@@ -7,6 +7,11 @@
 	#define SOLITAIRE_ENGINE_API __declspec(dllimport)
 #endif
 
+// Disable assert() in release builds by defining NDEBUG
+#ifdef RELEASE
+	#define NDEBUG
+#endif
+
 // Defines the name of the engine configuration file, located in the Config folder.
 // Must always maintain a consistent name.
 #define DefaultEngineConfig TEXT("DefaultEngine.ini")
@@ -52,6 +57,5 @@ namespace Core::Paths
 	SOLITAIRE_ENGINE_API inline const SWString& GetProjectGeneratedPath() { return GProjectGeneratedPath; }
 
 	/** Creates necessary project directories if they do not already exist. */
-	//TODO Remove SOLITAIRE_ENGINE_API
-	SOLITAIRE_ENGINE_API void CreateDirectories();
+	void CreateDirectories();
 }
