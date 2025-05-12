@@ -2,18 +2,25 @@
 
 SKeyBinding::SKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey) : KeyAction(NewKeyAction), VirtualKey(NewVirtualKey) {}
 
-SKeyBinding::SKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey, const SCallBack& NewCallBack) :
-	KeyAction(NewKeyAction), VirtualKey(NewVirtualKey), CallBack(NewCallBack) {}
+SKeyBinding::SKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey, const SCallbackRecords& NewCallBack) :
+	KeyAction(NewKeyAction), VirtualKey(NewVirtualKey), CallBacks(NewCallBack) {}
+
+SInputSystem* SInputSystem::GetInstance()
+{
+    // Returns the singleton instance of the SInputSystem.
+    static SUniquePtr<SInputSystem> InputSystem = std::make_unique<SInputSystem>();
+    return InputSystem.get();
+}
 
 SBool SInputSystem::Initialize()
 {
-    //Bind 
-	Bindings[0] = { EKeyAction::MoveUp, VK_UP };
-	Bindings[1] = { EKeyAction::MoveDown, VK_DOWN };
-	Bindings[2] = { EKeyAction::Select, VK_RETURN };
-	Bindings[3] = { EKeyAction::Back, VK_ESCAPE };
+    // Bind default key actions to corresponding virtual key codes
+    Bindings[0] = { EKeyAction::MoveUp, VK_UP };
+    Bindings[1] = { EKeyAction::MoveDown, VK_DOWN };
+    Bindings[2] = { EKeyAction::Select, VK_RETURN };
+    Bindings[3] = { EKeyAction::Back, VK_ESCAPE };
 
-    // Log
+    // Log successful initialization
     S_LOG(LogInputSystem, TEXT("Input System initialized."));
 
     return true;
@@ -21,7 +28,51 @@ SBool SInputSystem::Initialize()
 
 SBool SInputSystem::IsPressed(EKeyAction KeyAction)
 {
+    // Return the current pressed state of the specified key action.
     return KeyStates[(SUInt8)KeyAction];
+}
+
+SUInt64 SInputSystem::AddCallback(EKeyAction KeyAction, const SCallback& CallBack)
+{
+    // Set ID
+    SUInt64 AssignedID = NextID++;
+
+    // Iterate through all key bindings
+    for (SKeyBinding& KeyBinding : Bindings)
+    {
+        // Check if the current binding matches the specified key action
+        if (KeyBinding.KeyAction == KeyAction)
+        {
+            // Add the new callback to the list of callbacks for this key action
+            KeyBinding.CallBacks.push_back(FCallbackRecord(AssignedID, CallBack));
+            return AssignedID;
+        }
+    }
+
+    // Return invalid callback ID
+    return INVALID_CALLBACK_ID;
+}
+
+void SInputSystem::RemoveCallback(EKeyAction KeyAction, const SUInt64 CallbackID)
+{
+    // Check if the CallbackID isn't invalid
+    if (CallbackID != INVALID_CALLBACK_ID)
+    {
+        // Iterate through all key bindings
+        for (SKeyBinding& KeyBinding : Bindings)
+        {
+            // Check if this binding matches the requested key action
+            if (KeyBinding.KeyAction == KeyAction)
+            {
+                // Erase the callback with the matching ID from the list
+                KeyBinding.CallBacks.erase(std::remove_if(KeyBinding.CallBacks.begin(), KeyBinding.CallBacks.end(), [CallbackID](const FCallbackRecord& Record)
+                    {
+                        return Record.ID == CallbackID;
+                    }),
+                    KeyBinding.CallBacks.end());
+            }
+        }
+    }
 }
 
 void SInputSystem::UpdateKeyStates()
@@ -39,19 +90,25 @@ void SInputSystem::UpdateKeyStates()
         SInt16 KeyStateResult = GetAsyncKeyState(Binding.VirtualKey);
         SBool IsCurrentlyPressed = (KeyStateResult & 0x8000) != 0;
 
-        // Log when the key is pressed
-        if (IsCurrentlyPressed)
-        {
-            S_LOG(LogInputSystem, TEXT("Key '%u' is pressed."), Binding.VirtualKey);
-        }
-
         // If the key is pressed and was not pressed previously, trigger the callback
         if (IsCurrentlyPressed && !IsPressed(Binding.KeyAction))
         {
-            if (Binding.CallBack)
+            if (!Binding.CallBacks.empty())
             {
-                // Invoke the assigned callback function
-                Binding.CallBack(); 
+                // Loop through and invoke each assigned callback function
+                for (auto& Callback : Binding.CallBacks)
+                {
+                    if (Callback.Callback)
+                    {
+                        // Execute the valid callback
+                        Callback.Callback();
+                    }
+                    else
+                    {
+                        // Log a warning if the callback is invalid (nullptr)
+                        S_LOG_WARNING(LogInputSystem, TEXT("Attempted to invoke an invalid callback function."));
+                    }
+                }
             }
         }
 

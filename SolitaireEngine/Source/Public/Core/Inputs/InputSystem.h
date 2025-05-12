@@ -3,19 +3,31 @@
 #include "Core/Inputs/KeyAction.h"
 #include <functional>
 
+/** Macro representing an invalid or uninitialized callback ID. */
+#define INVALID_CALLBACK_ID (SUInt64)-1
+
+/** Represents a single callback record that stores a unique identifier */
+struct SOLITAIRE_ENGINE_API FCallbackRecord
+{
+public:
+	/** Unique identifier for this callback (used for removal or tracking) */
+	SUInt64 ID = {};
+
+	/** The actual callback function to be invoked */
+	SCallback Callback = {};
+};
+
 /**
  * Structure that defines a mapping between a key action and a virtual key code.
  * Used to bind engine-defined actions (e.g., MoveUp) to specific keyboard inputs (e.g., VK_UP).
  */
 struct SOLITAIRE_ENGINE_API SKeyBinding
 {
-	using SCallBack = std::function<void()>;
-
 public:
 	/** Constructors */
 	SKeyBinding() = default;
 	SKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey);
-	SKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey, const SCallBack& NewCallBack);
+	SKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey, const SCallbackRecords& NewCallBack);
 
 	/** Input action defined by the engine (e.g., MoveUp, Select) */
 	EKeyAction KeyAction = EKeyAction::Max;
@@ -24,7 +36,7 @@ public:
 	SUInt32 VirtualKey = {};
 
 	/** Callback function that is triggered when the key action is activated */
-	SCallBack CallBack = nullptr;
+	SCallbackRecords CallBacks;
 };
 
 /** Class responsible for handling input and mapping virtual key codes to game actions. */
@@ -33,6 +45,9 @@ class SOLITAIRE_ENGINE_API SInputSystem
 	friend class SSolitaireEngine;
 
 public:
+	/** Get instance of this class */
+	static SInputSystem* GetInstance();
+
 	/** Maximum number of key bindings allowed */
 	static constexpr SUInt8 MaxBindings = 16;
 
@@ -41,6 +56,12 @@ public:
 
 	/** Checks if the key assigned to the given binding is currently pressed */
 	SBool IsPressed(EKeyAction KeyAction);
+
+	/** Registers a callback to be triggered when the specified key action occurs */
+	SUInt64 AddCallback(EKeyAction KeyAction, const SCallback& Callback);
+
+	/** Remove the callback from the given key action */
+	void RemoveCallback(EKeyAction KeyAction, const SUInt64 CallbackID);
 
 protected:
 	/** Updates the input states by polling the keyboard */
@@ -51,4 +72,7 @@ protected:
 
 	/** Key state map: index is EKeyAction as integer, value is true if pressed */
 	SBool KeyStates[(SUInt8)EKeyAction::Max] = { false };
+
+	/** The next available unique ID that will be assigned to the callback record. */
+	SUInt64 NextID = 1;
 };

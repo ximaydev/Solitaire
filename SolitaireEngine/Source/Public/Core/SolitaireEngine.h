@@ -31,8 +31,8 @@ private:
 	/** Unique pointer to the audio engine responsible for playing sounds. */
 	SUniquePtr<SAudioEngine> AudioEngine;
 
-	/** Unique pointer to the input system responsible for handling key input. */
-	SUniquePtr<SInputSystem> InputSystem;
+	/** Pointer to the input system responsible for handling key input. */
+	SInputSystem* InputSystem;
 
 	/** Pointer to the console renderer responsible for rendering console. */
 	SConsoleRenderer* ConsoleRenderer;

@@ -30,8 +30,11 @@ public:
     /** Clears the screen buffer. */
     void ClearBuffer();
 
+    /** Clears the screen buffer at the given position */
+    void ClearBufferAt(const SGridPositionU32& GridPosition, SSize Size);
+
     /** Writes to the screen buffer. */
-    void Write(const SGridPosition<SUInt32, SUInt32>& Position, const SWString& Text, WORD Color = WHITE);
+    void Write(const SGridPositionU32& Position, const SWString& Text, WORD Color = WHITE);
 
     /** Performs the main draw routine. */
     void Draw();
@@ -40,13 +43,13 @@ public:
     bool ShowConsolCursor(SBool bShowCursor);
 
     /** Draws a horizontal panel starting at the specified grid position. */
-    void DrawHorizontalPanel(const SGridPosition<SUInt32, SUInt32>& GridPosition, const SUInt32 Width, WORD Color = WHITE, const SWString& Character = TEXT(""));
+    void DrawHorizontalPanel(const SGridPositionU32& GridPosition, const SUInt32 Width, WORD Color = WHITE, const SWString& Character = TEXT(""));
 
     /** Draws a vertical panel starting at the specified grid position. */
-    void DrawVerticalPanel(const SGridPosition<SUInt32, SUInt32>& GridPosition, const SUInt32 Height, WORD Color = WHITE, const SWString& Character = TEXT(""));
+    void DrawVerticalPanel(const SGridPositionU32& GridPosition, const SUInt32 Height, WORD Color = WHITE, const SWString& Character = TEXT(""));
 
     /** Draws a filled rectangular panel. */
-    void DrawPanel(const SGridPosition<SUInt32, SUInt32>& GridPosition, const SUInt32 Width, const SUInt32 Height, WORD Color = WHITE, const SWString& Character = TEXT(""), const SWString& HeightCharacter = TEXT(""));
+    void DrawPanel(const SGridPositionU32& GridPosition, const SUInt32 Width, const SUInt32 Height, WORD Color = WHITE, const SWString& WidthCharacter = TEXT(""), const SWString& HeightCharacter = TEXT(""));
 
 protected:
     /** Handle to the console output. */
@@ -66,11 +69,14 @@ protected:
 
     SUInt16 BufferSize = ScreenWidth * ScreenHeight;
 
+    /** Validates that a given write operation does not go beyond the console buffer. */
+    SUInt32 ValidateWriteBounds(const SGridPositionU32& GridPosition, SSize TextLength);
+
     /** Draws the console window border. */
     void DrawBorder();
 
     /** Sets text color for a specific region in the buffer. */
-    bool SetTextColor(const SGridPosition<SInt32, SInt32>& GridPosition, const SUInt32 Size, WORD Color = WHITE);
+    bool SetTextColor(const SGridPositionU32& GridPosition, const SSize Size, WORD Color = WHITE);
 
     /** Locks the console window size by disabling resizing and maximizing. */
     void LockConsoleResize(HWND ConsoleHandle);

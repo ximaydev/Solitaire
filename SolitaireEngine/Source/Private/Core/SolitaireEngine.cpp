@@ -15,8 +15,15 @@ bool SSolitaireEngine::Initialize()
     // Create the audio engine
     AudioEngine = std::make_unique<SAudioEngine>();
 
-    // Create the input system
-    InputSystem = std::make_unique<SInputSystem>();
+    // Get the input system
+    InputSystem = SInputSystem::GetInstance();
+
+    // Initialize the InputSystem
+    if (!InputSystem->Initialize())
+    {
+        S_LOG_ERROR(LogSolitaireEngine, TEXT("Failed to initialize the input system."));
+        exit(1);
+    }
 
     //Get Console Renderer
     ConsoleRenderer = SConsoleRenderer::GetInstance();

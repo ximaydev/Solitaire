@@ -18,6 +18,10 @@
 #include <utility>
 #include <filesystem>
 #include <array>
+#include <functional>
+
+/** Forward Declarations */
+struct FCallbackRecord;
 
 // =============================================
 // Primitive Types
@@ -120,6 +124,9 @@ using SPair = std::pair<T1, T2>;
 template<typename T, SUInt64 Size>
 using SArray = std::array<T, Size>;
 
+template<typename T>
+using SInitializerList = std::initializer_list<T>;
+
 // =============================================
 // Rendering
 // =============================================
@@ -128,9 +135,13 @@ using SArray = std::array<T, Size>;
 template<typename T1, typename T2>
 using SGridPosition = std::pair<T1, T2>;
 
+using SGridPositionU32 = SGridPosition<SUInt32, SUInt32>;
+
 // =============================================
 // Specialized Aliases
 // =============================================
 
 using SIniSectionMap = SUnorderedMap<SWString, SWString>;
 using SIniConfigMap = SUnorderedMap<SWString, SIniSectionMap>;
+using SCallback = std::function<void()>;
+using SCallbackRecords = SVector<FCallbackRecord>;

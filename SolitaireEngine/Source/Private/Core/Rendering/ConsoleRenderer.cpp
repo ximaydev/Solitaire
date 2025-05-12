@@ -163,7 +163,17 @@ void SConsoleRenderer::ClearBuffer()
     }
 }
 
-void SConsoleRenderer::Write(const SGridPosition<SUInt32, SUInt32>& GridPosition, const SWString& Text, WORD Color)
+void SConsoleRenderer::ClearBufferAt(const SGridPositionU32& GridPosition, SSize Size)
+{
+    // Create the empty string
+    SWString EmptyString;
+    EmptyString.resize(Size, TEXT(' '));
+
+    // Write the empty text to the screen buffer
+    swprintf(&ScreenBuffer[ValidateWriteBounds(GridPosition, Size)], BufferSize, EmptyString.c_str());
+}
+
+void SConsoleRenderer::Write(const SGridPositionU32& GridPosition, const SWString& Text, WORD Color)
 {
     // Characters considered invalid for coloring
     SArray<SWideChar, 4> InvalidCharacters = { TEXT(' '), TEXT('\n'), TEXT('\r'), TEXT('\t') };
@@ -174,13 +184,16 @@ void SConsoleRenderer::Write(const SGridPosition<SUInt32, SUInt32>& GridPosition
             return Character == Text[0];
         };
 
+    //Get the size of the text
+    SSize TextSize = Text.size();
+
     // Apply color only if the text is not empty, is longer than one character,
     // and the first character is not considered invalid
-    if (Text.size() > 1 && !Text.empty())
+    if (TextSize > 1 && !Text.empty())
     {
         if (std::find_if(InvalidCharacters.begin(), InvalidCharacters.end(), IsAnyOf) == InvalidCharacters.end())
         {
-            SetTextColor(GridPosition, Text.size(), Color);
+            SetTextColor(GridPosition, TextSize, Color);
         }
         else
         {
@@ -188,18 +201,8 @@ void SConsoleRenderer::Write(const SGridPosition<SUInt32, SUInt32>& GridPosition
         }
     }
 
-    // Convert (x, y) position to buffer index
-    SUInt32 Position = GridPosition.second * ScreenWidth + GridPosition.first;
-
-    // Validate that we're not writing past the buffer
-    if (Position + Text.size() > BufferSize)
-    {
-        S_LOG_WARNING(LogConsoleRenderer, TEXT("Attempted to write beyond buffer! Position: %u, TextSize: %zu, BufferSize: %zu"), Position, Text.size(), BufferSize);
-        assert(false && "You wanted to write beyond the buffer");
-    }
-
     // Write the text to the screen buffer
-    swprintf(&ScreenBuffer[Position], BufferSize, Text.c_str());
+    swprintf(&ScreenBuffer[ValidateWriteBounds(GridPosition, TextSize)], BufferSize, Text.c_str());
 }
 void SConsoleRenderer::Draw()
 {
@@ -229,7 +232,7 @@ bool SConsoleRenderer::ShowConsolCursor(SBool bShowCursor)
     return SetConsoleCursorInfo(ConsoleScreenBuffer, &CursorInfo);
 }
 
-void SConsoleRenderer::DrawHorizontalPanel(const SGridPosition<SUInt32, SUInt32>& GridPosition, const SUInt32 Width, WORD Color, const SWString& Character)
+void SConsoleRenderer::DrawHorizontalPanel(const SGridPositionU32& GridPosition, const SUInt32 Width, WORD Color, const SWString& Character)
 {
     // If the input character is empty, do nothing
     if (Character == TEXT(""))
@@ -249,7 +252,7 @@ void SConsoleRenderer::DrawHorizontalPanel(const SGridPosition<SUInt32, SUInt32>
     Write(GridPosition, HorizontalPanel, Color);
 }
 
-void SConsoleRenderer::DrawVerticalPanel(const SGridPosition<SUInt32, SUInt32>& GridPosition, const SUInt32 Height, WORD Color, const SWString& Character)
+void SConsoleRenderer::DrawVerticalPanel(const SGridPositionU32& GridPosition, const SUInt32 Height, WORD Color, const SWString& Character)
 {
     // If the input character is empty, do nothing
     if (Character == TEXT(""))
@@ -259,23 +262,38 @@ void SConsoleRenderer::DrawVerticalPanel(const SGridPosition<SUInt32, SUInt32>& 
     for (SUInt32 Index = 0; Index < Height; Index++)
     {
         // Write the character to the screen buffer at the specified position with the given color
-        Write(SGridPosition<SUInt32, SUInt32>(GridPosition.first, GridPosition.second + Index), Character, Color);
+        Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index), Character, Color);
     }
 }
 
-void SConsoleRenderer::DrawPanel(const SGridPosition<SUInt32, SUInt32>& GridPosition, const SUInt32 Width, const SUInt32 Height, WORD Color, const SWString& WidthCharacter, const SWString& HeightCharacter)
+void SConsoleRenderer::DrawPanel(const SGridPositionU32& GridPosition, const SUInt32 Width, const SUInt32 Height, WORD Color, const SWString& WidthCharacter, const SWString& HeightCharacter)
 {
     // Draw top horizontal border
     DrawHorizontalPanel(GridPosition, Width, Color, WidthCharacter);
 
     // Draw bottom horizontal border
-    DrawHorizontalPanel(SGridPosition<SUInt32, SUInt32>(GridPosition.first, GridPosition.second + Height), Width, Color, WidthCharacter);
+    DrawHorizontalPanel(SGridPositionU32(GridPosition.first, GridPosition.second + Height), Width, Color, WidthCharacter);
 
     // Draw left vertical border
-    DrawVerticalPanel(SGridPosition<SUInt32, SUInt32>(GridPosition.first, GridPosition.second + 1), Height - 1, Color, HeightCharacter);
+    DrawVerticalPanel(SGridPositionU32(GridPosition.first, GridPosition.second + 1), Height - 1, Color, HeightCharacter);
 
     // Draw right vertical border
-    DrawVerticalPanel(SGridPosition<SUInt32, SUInt32>(GridPosition.first + Width - 1, GridPosition.second + 1), Height - 1, Color, HeightCharacter);
+    DrawVerticalPanel(SGridPositionU32(GridPosition.first + Width - 1, GridPosition.second + 1), Height - 1, Color, HeightCharacter);
+}
+
+SUInt32 SConsoleRenderer::ValidateWriteBounds(const SGridPositionU32& GridPosition, SSize TextLength)
+{
+    // Convert (x, y) position to buffer index
+    SUInt32 Position = GridPosition.second * ScreenWidth + GridPosition.first;
+
+    // Validate that we're not writing past the buffer
+    if (Position + TextLength > BufferSize)
+    {
+        S_LOG_WARNING(LogConsoleRenderer, TEXT("Attempted to write beyond buffer! Position: %u, TextSize: %zu, BufferSize: %zu"), Position, TextLength, BufferSize);
+        assert(false && "You wanted to write beyond the buffer");
+    }
+
+    return Position;
 }
 
 void SConsoleRenderer::DrawBorder()
@@ -283,7 +301,7 @@ void SConsoleRenderer::DrawBorder()
     DrawPanel(SGridPosition<SUInt32, SUInt32>(1, 0), GetScreenWidth() - 2, GetScreenHeight() - 1, WHITE, TEXT("#"), TEXT("#"));
 }
 
-bool SConsoleRenderer::SetTextColor(const SGridPosition<SInt32, SInt32>& GridPosition, const SUInt32 Size, WORD Color)
+bool SConsoleRenderer::SetTextColor(const SGridPositionU32& GridPosition, const SSize Size, WORD Color)
 {
     // Define the position in the console screen buffer where the text color should be applied
     COORD Position(GridPosition.first, GridPosition.second);
@@ -292,9 +310,9 @@ bool SConsoleRenderer::SetTextColor(const SGridPosition<SInt32, SInt32>& GridPos
     SVector<WORD> Write(Size, Color);
 
     DWORD Written = 0;
-
+    
     // Attempt to write the color attributes to the console screen buffer
-    if (!WriteConsoleOutputAttribute(ConsoleScreenBuffer, &Write[0], Size, Position, &Written))
+    if (!WriteConsoleOutputAttribute(ConsoleScreenBuffer, &Write[0], static_cast<DWORD>(Size), Position, &Written))
     {
         // Log a warning if writing the color attributes fails
         S_LOG_WARNING(LogConsoleRenderer, TEXT("Unable to change the text color"));
