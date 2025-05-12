@@ -1,5 +1,5 @@
 #include "SolitaireEnginePCH.h"
-#include "Core/INI/INIFileManager.h"
+#include "Core/Ini/IniFileManager.h"
 
 SIniFileManager* SIniFileManager::GetInstance()
 {
