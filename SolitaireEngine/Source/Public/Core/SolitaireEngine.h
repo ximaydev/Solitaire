@@ -7,6 +7,7 @@
 class SAudioEngine;
 class SInputSystem;
 class SConsoleRenderer;
+class SWorld;
 
 /**
  * SSolitaireEngine is the core engine class responsible for managing and running
@@ -30,15 +31,15 @@ private:
 	/** Renders output to the console. */
 	void Render();
 
-	/** Unique pointer to the audio engine responsible for playing sounds. */
-	SUniquePtr<SAudioEngine> AudioEngine;
-
 	/** Pointer to the input system responsible for handling key input. */
-	SInputSystem* InputSystem;
+	SInputSystem* InputSystem = {};
 
 	/** Pointer to the console renderer responsible for rendering console. */
-	SConsoleRenderer* ConsoleRenderer;
+	SConsoleRenderer* ConsoleRenderer = {};
 
 	/** Indicates whether the engine is currently running. */
-	SBool IsRunning = false;
+	SBool IsRunning = {};
+
+	/** The world currently being rendered by the engine */
+	SSharedPtr<SWorld> CurrentWorld;
 };

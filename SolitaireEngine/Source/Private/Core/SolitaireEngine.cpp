@@ -2,6 +2,7 @@
 #include "Rendering/ConsoleRenderer.h"
 #include "Config/IniFileManager.h"
 #include "Inputs/InputSystem.h"
+#include "Framework/World.h"
 
 bool SSolitaireEngine::Initialize()
 {
@@ -13,10 +14,7 @@ bool SSolitaireEngine::Initialize()
 
     // Loads the config files from the disk
     SIniFileManager::GetInstance()->LoadConfigFilesFromDisk();
-
-    // Create the audio engine
-    AudioEngine = std::make_unique<SAudioEngine>();
-
+    
     // Get the input system
     InputSystem = SInputSystem::GetInstance();
 
@@ -41,9 +39,6 @@ void SSolitaireEngine::ShutDown()
     // Log the beginning of engine shutdown
     S_LOG(LogSolitaireEngine, TEXT("Shutting down the Solitaire Engine..."));
 
-    // Deinitialize the audio engine
-    AudioEngine->Shutdown();
-
     // Log shutdown completion
     S_LOG(LogSolitaireEngine, TEXT("Solitaire Engine shutdown completed."));
 
@@ -53,6 +48,13 @@ void SSolitaireEngine::ShutDown()
 
 void SSolitaireEngine::Render()
 {
+    // Check if the current world isn't nullptr 
+    if (CurrentWorld)
+    {
+        // Write the current world to the console buffer
+        CurrentWorld->Write();
+    }
+
     // Render current frame to the console
     ConsoleRenderer->Draw();
 }

@@ -16,26 +16,23 @@ public:
     SIConsoleRenderable() = default;
     SIConsoleRenderable(const SGridPositionU32& NewGridPosition) : GridPosition(NewGridPosition) {}
 
-    /** Destructor */
-    virtual ~SIConsoleRenderable() = default;
-
     /** Get Grid Position. */
     inline const SGridPositionU32& GetGridPosition() const { return GridPosition; }
 
     /** Set Grid Position */
     inline void SetGridPosition(const SGridPositionU32& NewGridPosition) { GridPosition = NewGridPosition; }
 
-    /** Renders the object at its internal grid position.  */
+    /** Renders the object at its internal grid position. */
     virtual void Write();
 
     /** Clears the object from the console using its internal grid position. */
     virtual void ClearBuffer();
 
     /** Renders the object at a specified grid position. */
-    virtual void WriteAt(const SGridPositionU32& InGridPosition) = 0;
+    virtual void WriteAt(const SGridPositionU32& InGridPosition) {};
 
     /** Clears the object from a specified grid position.  */
-    virtual void ClearBufferAt(const SGridPositionU32& InGridPosition) = 0;
+    virtual void ClearBufferAt(const SGridPositionU32& InGridPosition) {};
 
 protected:
     /** Grid position used for default rendering. */
@@ -88,6 +85,9 @@ public:
     /** Draws a filled rectangular panel. */
     void DrawPanel(const SGridPositionU32& GridPosition, const SUInt32 Width, const SUInt32 Height, WORD Color = WHITE, const SWString& WidthCharacter = TEXT(""), const SWString& HeightCharacter = TEXT(""));
 
+    /** Draws the console window border. */
+    void DrawBorder();
+
 protected:
     /** Handle to the console output. */
     HANDLE ConsoleScreenBuffer;
@@ -108,9 +108,6 @@ protected:
 
     /** Validates that a given write operation does not go beyond the console buffer. */
     SUInt32 ValidateWriteBounds(const SGridPositionU32& GridPosition, SSize TextLength);
-
-    /** Draws the console window border. */
-    void DrawBorder();
 
     /** Sets text color for a specific region in the buffer. */
     bool SetTextColor(const SGridPositionU32& GridPosition, const SSize Size, WORD Color = WHITE);
