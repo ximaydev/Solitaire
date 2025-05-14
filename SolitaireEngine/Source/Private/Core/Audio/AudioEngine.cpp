@@ -133,8 +133,8 @@ void SAudioEngine::PlaySound(const SWString& FilePath, const SWString& GroupName
 
 	// Prepare XAUDIO2_BUFFER, which contains the actual audio data
 	XAUDIO2_BUFFER Buffer = {};
-	Buffer.AudioBytes = WAVFile->Data.size();  // Set the number of audio bytes
-	Buffer.pAudioData = WAVFile->Data.data();  // Pointer to the audio data in the WAV file
+	Buffer.AudioBytes = static_cast<SUInt32>(WAVFile->Data.size());  // Set the number of audio bytes
+	Buffer.pAudioData = WAVFile->Data.data();						 // Pointer to the audio data in the WAV file
 
 	//Play Sound
 	PlaySound(WAVFile, Buffer, GroupName);

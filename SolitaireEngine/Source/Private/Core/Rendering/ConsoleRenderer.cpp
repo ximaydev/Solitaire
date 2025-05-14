@@ -2,6 +2,16 @@
 #include "Core/Rendering/ConsoleRenderer.h"
 #include <cassert>
 
+void SIConsoleRenderable::Write()
+{
+    WriteAt(GetGridPosition());
+}
+
+void SIConsoleRenderable::ClearBuffer()
+{
+    ClearBufferAt(GetGridPosition());
+}
+
 SConsoleRenderer::SConsoleRenderer()
 {
     // Acquire handle to the standard output console buffer

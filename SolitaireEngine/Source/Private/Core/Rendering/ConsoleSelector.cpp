@@ -1,12 +1,14 @@
 #include "SolitaireEnginePCH.h"
 #include "Core/Rendering/ConsoleSelector.h"
-#include "Core/Rendering/ConsoleRenderer.h"
 
 FSelectionCursor::FSelectionCursor(const SWString& NewCursor, const WORD NewCursorColor)
     : Cursor(NewCursor), CursorColor(NewCursorColor) {}
 
-void FSelectionCursor::Write(const SGridPositionU32& GridPosition)
+void FSelectionCursor::WriteAt(const SGridPositionU32& NewGridPosition)
 {
+    // Set new grid position
+    SetGridPosition(NewGridPosition);
+
     // Get the console renderer instance
     SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
 
@@ -25,23 +27,23 @@ void FSelectionCursor::Write(const SGridPositionU32& GridPosition)
     ConsoleRenderer->Write(PreviousCursorPosition, Cursor, RED);
 }
 
-void FSelectionCursor::ClearAt(const SGridPositionU32& GridPosition)
+void FSelectionCursor::ClearBufferAt(const SGridPositionU32& GridPosition)
 {
     SConsoleRenderer::GetInstance()->ClearBufferAt(SGridPositionU32(CalculateCursorXPosition(GridPosition.first, Cursor), GridPosition.second), Cursor.size());
 }
 
-SConsoleSelector::SConsoleSelector(const SGridPositionU32& NewGridPosition) : GridPosition(NewGridPosition) {}
+SConsoleSelector::SConsoleSelector(const SGridPositionU32& NewGridPosition) : SIConsoleRenderable(NewGridPosition) {}
 
 SConsoleSelector::SConsoleSelector(const SInitializerList<SPair<SWStringView, SCallback>>& InitializerList, const SGridPositionU32& NewGridPosition)
-    : GridPosition(NewGridPosition)
-{
+    : SIConsoleRenderable(NewGridPosition)
+{   
     // Try to insert each element from the initializer list into the 'Options' map
     for (auto& Element : InitializerList)
     {
         // Try to emplace the Element
         Options.try_emplace(Element.first, Element.second);
     }
-
+    
     // Check if the InitializerList isn't empty
     if (InitializerList.size() != 0)
     {
@@ -88,7 +90,7 @@ void SConsoleSelector::Write()
     }
 
     //Write cursor
-    Cursor->Write(SGridPositionU32(GridPosition.first, GridPosition.second + CurrentIndex));
+    Cursor->WriteAt(SGridPositionU32(GridPosition.first, GridPosition.second + CurrentIndex));
 }
 
 void SConsoleSelector::AddOption(const SWStringView& NewOption, const SCallback& Callback)
@@ -117,11 +119,11 @@ void SConsoleSelector::AddOption(const SWStringView& NewOption, const SCallback&
     }
 }
 
-void SConsoleSelector::ClearOptions()
+void SConsoleSelector::ClearBuffer()
 {
     // Get the instance of the Console Renderer singleton
     SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
-
+    
     // Iterate through all options and clear each one from the console buffer
     SUInt8 Index = 0;
     for (const auto& Element : Options)
@@ -134,7 +136,7 @@ void SConsoleSelector::ClearOptions()
     Options.clear();
 
     //Destroy cursor
-    Cursor->ClearAt(SGridPositionU32(GridPosition.first, GridPosition.second + CurrentIndex));
+    Cursor->ClearBufferAt(SGridPositionU32(GridPosition.first, GridPosition.second + CurrentIndex));
     Cursor.reset();
 }
 
