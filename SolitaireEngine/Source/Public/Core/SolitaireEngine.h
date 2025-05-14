@@ -19,7 +19,7 @@ class SOLITAIRE_ENGINE_API SSolitaireEngine
 {
 public:
 	/** Initializes all subsystems of the Solitaire Engine. */
-	bool Initialize();
+	bool Initialize(const SSharedPtr<SWorld>& NewWorld);
 
 	/** Runs the main game loop. */
 	void Run();

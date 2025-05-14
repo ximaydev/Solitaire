@@ -4,7 +4,7 @@
 #include "Inputs/InputSystem.h"
 #include "Framework/World.h"
 
-bool SSolitaireEngine::Initialize()
+bool SSolitaireEngine::Initialize(const SSharedPtr<SWorld>& NewWorld)
 {
     // Log the begining of the engine initialization
     S_LOG(LogSolitaireEngine, TEXT("Initializing Solitaire Engine..."));
@@ -27,6 +27,9 @@ bool SSolitaireEngine::Initialize()
 
     //Get Console Renderer
     ConsoleRenderer = SConsoleRenderer::GetInstance();
+
+    //Set current world
+    CurrentWorld = NewWorld;
 
     // Log the engine initialization completed
     S_LOG(LogTemp, TEXT("Solitaire Engine initialization completed."));
