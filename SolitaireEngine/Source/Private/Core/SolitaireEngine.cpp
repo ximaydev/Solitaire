@@ -1,5 +1,7 @@
 #include "SolitaireEnginePCH.h"
-#include "Core/Rendering/ConsoleRenderer.h"
+#include "Rendering/ConsoleRenderer.h"
+#include "Config/IniFileManager.h"
+#include "Inputs/InputSystem.h"
 
 bool SSolitaireEngine::Initialize()
 {

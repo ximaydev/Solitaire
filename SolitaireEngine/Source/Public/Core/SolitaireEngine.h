@@ -1,5 +1,7 @@
 #pragma once
 #include "Globals.h"
+#include "Audio/AudioEngine.h"
+#include "Audio/AudioMaster.h"
 
 /** Forward Declarations */
 class SAudioEngine;
