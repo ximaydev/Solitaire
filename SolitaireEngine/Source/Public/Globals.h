@@ -1,6 +1,9 @@
 #pragma once
 #include "Core/CoreTypes.h"
 
+/** Forward Declarations */
+class SSolitaireEngine;
+
 #ifdef SOLITAIRE_ENGINE_BUILD
 	#define SOLITAIRE_ENGINE_API __declspec(dllexport)
 #else
@@ -59,3 +62,6 @@ namespace Core::Paths
 	/** Creates necessary project directories if they do not already exist. */
 	void CreateDirectories();
 }
+
+/** Global unique pointer instance managing the Solitaire Engine. */
+extern SOLITAIRE_ENGINE_API SUniquePtr<SSolitaireEngine> GSolitaireEngine;

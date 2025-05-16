@@ -8,6 +8,7 @@ class SAudioEngine;
 class SInputSystem;
 class SConsoleRenderer;
 class SWorld;
+class SConsoleInputHandler;
 
 /**
  * SSolitaireEngine is the core engine class responsible for managing and running
@@ -20,9 +21,15 @@ class SOLITAIRE_ENGINE_API SSolitaireEngine
 public:
 	/** Initializes all subsystems of the Solitaire Engine. */
 	bool Initialize(const SSharedPtr<SWorld>& NewWorld);
-
+	
 	/** Runs the main game loop. */
 	void Run();
+
+	/** Get UseConsoleInputHandler */
+	inline SBool GetUseConsoleInputHandler() const { return UseConsoleInputHandler; }
+
+	/** Set UseConsoleInputHandler */
+	inline void SetUseConsoleInputHandler(SBool NewUseConsoleInputHandler) { UseConsoleInputHandler = NewUseConsoleInputHandler; }
 
 private:
 	/** Shuts down the engine and cleans up resources. */
@@ -31,8 +38,14 @@ private:
 	/** Renders output to the console. */
 	void Render();
 
+	/** Processes input events. */
+	void ProcessInput();
+
 	/** Pointer to the input system responsible for handling key input. */
 	SInputSystem* InputSystem = {};
+
+	/** Pointer to the input system responsible for handling inputs in the console. */
+	SConsoleInputHandler* ConsoleInputHandler;
 
 	/** Pointer to the console renderer responsible for rendering console. */
 	SConsoleRenderer* ConsoleRenderer = {};
@@ -42,4 +55,7 @@ private:
 
 	/** The world currently being rendered by the engine */
 	SSharedPtr<SWorld> CurrentWorld;
+
+	/** Flag to determine whether to use this low-level Console Input Handle or the higher-level Input System. */
+	SBool UseConsoleInputHandler = false;
 };

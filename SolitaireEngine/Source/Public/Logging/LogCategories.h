@@ -15,3 +15,4 @@ constexpr SWStringView LogAudio = TEXT("LogAudio");
 constexpr SWStringView LogInputSystem = TEXT("LogInputSystem");
 constexpr SWStringView LogSolitaireEngine = TEXT("LogSolitaireEngine");
 constexpr SWStringView LogConsoleRenderer = TEXT("LogConsoleRenderer");
+constexpr SWStringView LogCard = TEXT("LogCard");

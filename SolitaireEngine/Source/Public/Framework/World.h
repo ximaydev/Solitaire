@@ -12,7 +12,11 @@ class SOLITAIRE_ENGINE_API SWorld : public SIConsoleRenderable
 
 public:
 	/** Add the actor to the Actors */
-	inline void AddActor(SAActor* Actor) { Actors.push_back(Actor); }
+	void AddActor(SAActor* Actor);
+
+	/** Spawn an actor. */
+	template <typename PtrType, typename T, typename... Args>
+	PtrType SpawnActor(Args&&... args);
 
 protected:
 	/** Called once when the world is created */
@@ -30,3 +34,19 @@ protected:
 	/** List of all actors in this world */
 	SVector<SAActor*> Actors;
 };
+
+template <typename PtrType, typename T, typename... Args>
+PtrType SWorld::SpawnActor(Args&&... args)
+{
+	// Create a new actor instance wrapped in PtrType using raw pointer constructor
+	PtrType Actor = PtrType(new T(std::forward<Args>(args)...));
+
+	// Set the actor's world pointer to this world instance
+	Actor->World = this;
+
+	// Store raw pointer in internal Actors container for lifetime management
+	Actors.push_back(Actor.get());
+
+	// Return the smart pointer to the caller
+	return Actor;
+}

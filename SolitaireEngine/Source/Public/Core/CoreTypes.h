@@ -149,3 +149,4 @@ using SIniSectionMap = SUnorderedMap<SWString, SWString>;
 using SIniConfigMap = SUnorderedMap<SWString, SIniSectionMap>;
 using SCallback = std::function<void()>;
 using SCallbackRecords = SVector<FCallbackRecord>;
+using SConsoleLineCommitted = std::function<void(SWString&)>;

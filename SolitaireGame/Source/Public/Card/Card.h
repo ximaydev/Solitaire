@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "Globals.h"
 #include "Framework/Actor.h"
 
 /**
@@ -51,9 +50,25 @@ struct FCardInfo
 {
 public:
     /** Constructors */
-    FCardInfo() = delete;
     FCardInfo(ECardRank InRank, ECardSuit InSuit, SBool bIsFaceUp) : CardRank(InRank), CardSuit(InSuit), IsFaceUp(bIsFaceUp) { SetCardColor(); }
 
+    /** Get CardRank */
+    inline ECardRank GetCardRank() const { return CardRank; }
+    
+    /** Get CardSuit */
+    inline ECardSuit GetCardSuit() const { return CardSuit; }
+
+    /** Get Color */
+    inline WORD GetColor() const { return Color; }
+
+    /** Card Sizes */
+    const SUInt32 CardSizeX = 7;
+    const SUInt32 CardSizeY = 5;
+
+    /** True if the card is face up (visible). */
+    SBool IsFaceUp;
+
+protected:
     /** Sets the color of the card based on its suit. */
     void SetCardColor();
 
@@ -63,15 +78,8 @@ public:
     /** Suit (color) of the card. */
     ECardSuit CardSuit;
 
-    /** True if the card is face up (visible). */
-    SBool IsFaceUp;
-
     /** Console display color attribute for the card. */
     WORD Color;
-
-    /** Card Sizes */
-    const SUInt32 CardSizeX = 7;
-    const SUInt32 CardSizeY = 5;
 };
 
 /** Class representing a card with rendering capabilities. */
@@ -86,6 +94,12 @@ public:
 
     /** Clears the card from the console using its internal grid position. */
     void ClearBuffer() override;
+
+    /** Get Card Info */
+    FCardInfo& GetCardInfo_Mutable() { return CardInfo; }
+
+    /** Get Card Info */
+    const FCardInfo& GetCardInfo() const { return CardInfo; }
 
 private:
     /** Stores card information (rank, suit, face up). */

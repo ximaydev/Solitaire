@@ -2,6 +2,7 @@
 #include "Rendering/ConsoleRenderer.h"
 #include "Config/IniFileManager.h"
 #include "Inputs/InputSystem.h"
+#include "Inputs/ConsoleInputHandler.h"
 #include "Framework/World.h"
 
 bool SSolitaireEngine::Initialize(const SSharedPtr<SWorld>& NewWorld)
@@ -24,6 +25,9 @@ bool SSolitaireEngine::Initialize(const SSharedPtr<SWorld>& NewWorld)
         S_LOG_ERROR(LogSolitaireEngine, TEXT("Failed to initialize the input system."));
         exit(1);
     }
+
+    // Get the Console Input Handler
+    ConsoleInputHandler = SConsoleInputHandler::GetInstance();
 
     //Get Console Renderer
     ConsoleRenderer = SConsoleRenderer::GetInstance();
@@ -58,8 +62,29 @@ void SSolitaireEngine::Render()
         CurrentWorld->Write();
     }
 
+    // Check if the UseConsoleInputHandler is set to true
+    if (UseConsoleInputHandler)
+    {
+        ConsoleInputHandler->Write();
+    }
+
     // Render current frame to the console
     ConsoleRenderer->Draw();
+}
+
+void SSolitaireEngine::ProcessInput()
+{
+    // Check if the UseConsoleInputHandler is set to true
+    if (UseConsoleInputHandler)
+    {
+        // Process character input and update the current text line
+        ConsoleInputHandler->UpdateLine();
+    }
+    else
+    {
+        // Update key states
+        InputSystem->UpdateKeyStates();
+    }
 }
 
 void SSolitaireEngine::Run()
@@ -72,9 +97,9 @@ void SSolitaireEngine::Run()
 
     // Start the main game loop
     while (IsRunning)
-    {    
-        // Update input system
-        InputSystem->UpdateKeyStates();
+    {
+        // Process Input
+        ProcessInput();
 
         // Render the frame
         Render();

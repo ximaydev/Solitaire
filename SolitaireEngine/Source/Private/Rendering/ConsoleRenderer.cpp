@@ -202,9 +202,9 @@ void SConsoleRenderer::Write(const SGridPositionU32& GridPosition, const SWStrin
     //Get the size of the text
     SSize TextSize = Text.size();
 
-    // Apply color only if the text is not empty, is longer than one character,
+    // Apply color only if the text is not empty,
     // and the first character is not considered invalid
-    if (TextSize > 1 && !Text.empty())
+    if (!Text.empty())
     {
         if (std::find_if(InvalidCharacters.begin(), InvalidCharacters.end(), IsAnyOf) == InvalidCharacters.end())
         {
