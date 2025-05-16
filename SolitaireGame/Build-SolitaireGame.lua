@@ -18,7 +18,8 @@ project "SolitaireGame"
     
     -- Include directories for header resolution
     includedirs { 
-        "Source",                -- Game-specific headers
+       "Source",                            -- Base source directory
+       "Source/Public",                     -- Public headers
         "../SolitaireEngine/Source/Public"  -- Engine public API headers
     }
 
@@ -79,4 +80,4 @@ project "SolitaireGame"
         
     -- Precompiled header configuration
     pchheader "SolitaireGamePCH.h"         -- Precompiled header file
-    pchsource "Source/SolitaireGamePCH.cpp"  -- Source file for PCH generation
+    pchsource "Source/Private/SolitaireGamePCH.cpp"  -- Source file for PCH generation

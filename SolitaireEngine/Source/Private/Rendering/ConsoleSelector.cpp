@@ -2,35 +2,23 @@
 #include "Rendering/ConsoleSelector.h"
 #include "Inputs/InputSystem.h"
 
-FSelectionCursor::FSelectionCursor(const SWString& NewCursor, const WORD NewCursorColor)
-    : Cursor(NewCursor), CursorColor(NewCursorColor) {}
+FSelectionCursor::FSelectionCursor(const SWString& NewCursor, const WORD NewCursorColor) : Cursor(NewCursor), CursorColor(NewCursorColor) {}
 
-void FSelectionCursor::WriteAt(const SGridPositionU32& NewGridPosition)
+FSelectionCursor::FSelectionCursor(const SGridPositionU32& NewGridPosition, const SWString& NewCursor, const WORD NewCursorColor)
+    : SIConsoleRenderable(NewGridPosition), Cursor(NewCursor), CursorColor(NewCursorColor) {}
+
+void FSelectionCursor::Write()
 {
-    // Set new grid position
-    SetGridPosition(NewGridPosition);
-
-    // Get the console renderer instance
-    SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
-
-    // Check if the previous cursor position is set (i.e., it's not the value (-1, -1))
-    if (PreviousCursorPosition != INVALID_GRID_POSITION)
-    {
-        // If the previous cursor position is valid, clear the previous cursor position in the buffer
-        // (where "Cursor.size()" defines the width of the cursor to be cleared)
-        ConsoleRenderer->ClearBufferAt(PreviousCursorPosition, Cursor.size());
-    }
-
     // Update the current cursor position using the new calculated position
-    PreviousCursorPosition = SGridPositionU32(CalculateCursorXPosition(GridPosition.first, Cursor), GridPosition.second);
+    GridPosition = SGridPositionU32(CalculateCursorXPosition(GridPosition.first, Cursor), GridPosition.second);
 
     // Write the cursor at the new position to the console buffer with the specified color (RED)
-    ConsoleRenderer->Write(PreviousCursorPosition, Cursor, RED);
+    SConsoleRenderer::GetInstance()->Write(GridPosition, Cursor, FG_RED);
 }
 
-void FSelectionCursor::ClearBufferAt(const SGridPositionU32& GridPosition)
+void FSelectionCursor::ClearBuffer()
 {
-    SConsoleRenderer::GetInstance()->ClearBufferAt(SGridPositionU32(CalculateCursorXPosition(GridPosition.first, Cursor), GridPosition.second), Cursor.size());
+    SConsoleRenderer::GetInstance()->ClearBufferAt(SGridPositionU32(GridPosition.first, GridPosition.second), Cursor.size());
 }
 
 SConsoleSelector::SConsoleSelector(const SGridPositionU32& NewGridPosition) : SIConsoleRenderable(NewGridPosition) {}
@@ -48,17 +36,14 @@ SConsoleSelector::SConsoleSelector(const SInitializerList<SPair<SWStringView, SC
     // Check if the InitializerList isn't empty
     if (InitializerList.size() != 0)
     {
-        // Create the cursor string (e.g., "->" to indicate selection)
-        SWString CursorString = TEXT("->");
-
         // Calculate the X position of the cursor (left of the options text)
-        SUInt32 CursorPositionX = GridPosition.first - static_cast<SUInt32>(CursorString.size()) - 1;
+        SUInt32 CursorPositionX = FSelectionCursor::CalculateCursorXPosition(GetGridPosition().first, CursorString);
 
         // Validate if the cursor can be rendered within the screen bounds
         if (SConsoleRenderer::GetInstance()->GetScreenWidth() >= CursorPositionX)
         {
             // Create the cursor instance with the specified string, color, and position
-            Cursor = std::make_unique<FSelectionCursor>(CursorString, RED);
+            Cursor = std::make_unique<FSelectionCursor>(SGridPositionU32(CursorPositionX, GetGridPosition().second), CursorString, FG_RED);
         }
         else
         {
@@ -69,10 +54,13 @@ SConsoleSelector::SConsoleSelector(const SInitializerList<SPair<SWStringView, SC
 
 SBool SConsoleSelector::Initialize()
 {
+    // Get Input System
+    SInputSystem* InputSystem = SInputSystem::GetInstance();
+
     //Bind functions
-    SInputSystem::GetInstance()->AddCallback(EKeyAction::MoveDown, std::bind(&SConsoleSelector::OnArrowDownPressed, this));
-    SInputSystem::GetInstance()->AddCallback(EKeyAction::MoveUp, std::bind(&SConsoleSelector::OnArrowUpPressed, this));
-    SInputSystem::GetInstance()->AddCallback(EKeyAction::Select, std::bind(&SConsoleSelector::OnEnterPressed, this));
+    InputSystem->AddCallback(EKeyAction::MoveDown, std::bind(&SConsoleSelector::OnArrowDownPressed, this));
+    InputSystem->AddCallback(EKeyAction::MoveUp, std::bind(&SConsoleSelector::OnArrowUpPressed, this));
+    InputSystem->AddCallback(EKeyAction::Select, std::bind(&SConsoleSelector::OnEnterPressed, this));
 
     return true;
 }
@@ -87,11 +75,17 @@ void SConsoleSelector::Write()
     for (const auto& Element : Options)
     {
         // Write the element's key (converted to a string) to the console at the calculated position
-        ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index++), Element.first.data(), WHITE);
+        ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index++), Element.first.data(), FG_WHITE);
     }
 
-    //Write cursor
-    Cursor->WriteAt(SGridPositionU32(GridPosition.first, GridPosition.second + CurrentIndex));
+    // Clear old buffer
+    Cursor->ClearBuffer();
+
+    // Set new grid position
+    Cursor->SetGridPosition(SGridPositionU32(GridPosition.first, GridPosition.second + CurrentIndex));
+
+    // Write cursor
+    Cursor->Write();
 }
 
 void SConsoleSelector::AddOption(const SWStringView& NewOption, const SCallback& Callback)
@@ -100,14 +94,11 @@ void SConsoleSelector::AddOption(const SWStringView& NewOption, const SCallback&
     Options.try_emplace(NewOption, Callback);
 
     // Write to the buffer newly added option at the given position
-    SConsoleRenderer::GetInstance()->Write(SGridPositionU32(GridPosition.first, GridPosition.second + static_cast<SUInt32>(Options.size())), NewOption.data(), WHITE);
+    SConsoleRenderer::GetInstance()->Write(SGridPositionU32(GridPosition.first, GridPosition.second + static_cast<SUInt32>(Options.size())), NewOption.data(), FG_WHITE);
 
     //Check if the cursor is nullptr
     if (Cursor.get() == nullptr)
     {
-        // Create the cursor string (e.g., "->" to indicate selection)
-        SWString CursorString = TEXT("->");
-
         // Calculate the X position of the cursor (left of the options text)
         SUInt32 CursorPositionX = GridPosition.first - static_cast<SUInt32>(CursorString.size()) - 1;
 
@@ -115,7 +106,7 @@ void SConsoleSelector::AddOption(const SWStringView& NewOption, const SCallback&
         if (SConsoleRenderer::GetInstance()->GetScreenWidth() >= CursorPositionX)
         {
             // Create the cursor instance with the specified string, color, and position
-            Cursor = std::make_unique<FSelectionCursor>(CursorString, RED);
+            Cursor = std::make_unique<FSelectionCursor>(CursorString, FG_RED);
         }
     }
 }
@@ -137,15 +128,12 @@ void SConsoleSelector::ClearBuffer()
     Options.clear();
 
     //Destroy cursor
-    Cursor->ClearBufferAt(SGridPositionU32(GridPosition.first, GridPosition.second + CurrentIndex));
+    Cursor->ClearBuffer();
     Cursor.reset();
 }
 
 void SConsoleSelector::CreateCursor(const SGridPositionU32& GridPosition)
 {
-    // Create the cursor string (e.g., "->" to indicate selection)
-    SWString CursorString = TEXT("->");
-
     // Calculate the X position of the cursor (left of the options text)
     SUInt32 CursorPositionX = GridPosition.first - static_cast<SUInt32>(CursorString.size()) - 1;
 
@@ -153,7 +141,7 @@ void SConsoleSelector::CreateCursor(const SGridPositionU32& GridPosition)
     if (SConsoleRenderer::GetInstance()->GetScreenWidth() >= CursorPositionX)
     {
         // Create the cursor instance with the specified string, color, and position
-        Cursor = std::make_unique<FSelectionCursor>(CursorString, RED);
+        Cursor = std::make_unique<FSelectionCursor>(CursorString, FG_RED);
     }
 }
 

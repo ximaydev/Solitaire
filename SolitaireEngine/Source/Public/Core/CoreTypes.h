@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <array>
 #include <functional>
+#include <span>
 
 /** Forward Declarations */
 struct FCallbackRecord;
@@ -126,6 +127,9 @@ using SArray = std::array<T, Size>;
 
 template<typename T>
 using SInitializerList = std::initializer_list<T>;
+
+template<typename T, SSize Size>
+using SSpan = std::span<T, Size>;
 
 // =============================================
 // Rendering

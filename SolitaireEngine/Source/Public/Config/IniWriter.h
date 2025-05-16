@@ -9,7 +9,6 @@ class SOLITAIRE_ENGINE_API SIniWriter
 {
 public:
     /** Constructors */
-    SIniWriter() = delete;
     explicit SIniWriter(const SWString& FileName);
 
     /** Adds a new section to the INI file. */

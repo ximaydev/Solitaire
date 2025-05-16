@@ -1,16 +1,8 @@
 #include "SolitaireEnginePCH.h"
 #include "Rendering/ConsoleRenderer.h"
 #include <cassert>
-
-void SIConsoleRenderable::Write()
-{
-    WriteAt(GetGridPosition());
-}
-
-void SIConsoleRenderable::ClearBuffer()
-{
-    ClearBufferAt(GetGridPosition());
-}
+#include "Config/IniFile.h"
+#include "Config/IniFileManager.h"
 
 SConsoleRenderer::SConsoleRenderer()
 {
@@ -112,8 +104,8 @@ SConsoleRenderer::SConsoleRenderer()
     // Move window, keep size
     SetWindowPos(ConsoleWindow, nullptr, PositionX, PositionY, 0, 0, SWP_NOSIZE);
 
-    // Lock console 
-    LockConsoleResize(ConsoleWindow);
+    // Configure console window
+    ConfigureConsoleWindow(ConsoleWindow);
 
     // Allocate in-memory buffer for rendering characters
     ScreenBuffer = std::make_unique<SWideChar[]>(BufferSize);
@@ -137,6 +129,19 @@ SConsoleRenderer::SConsoleRenderer()
     {
         // Log failure code
         S_LOG_ERROR(LogConsoleRenderer, TEXT("SetConsoleActiveScreenBuffer failed: %lu"), GetLastError());
+
+        // Terminate on failure
+        exit(1);
+    }
+
+    // Get Current Background Color from the DefaultEngine.ini file
+    CurrentBackgroundColor = SIniFileManager::GetInstance()->GetConfigFile(DefaultEngineConfig)->GetValueFromKey<WORD>(TEXT("[Solitaire.ConsoleStyle]"), TEXT("BackgroundColor"));
+    
+    // Set the background color
+    if (!SetBackgroundColor(SGridPositionU32(0, 0), ScreenWidth * ScreenHeight, CurrentBackgroundColor))
+    {
+        // Log failure code
+        S_LOG_ERROR(LogConsoleRenderer, TEXT("FillConsoleOutputAttribute failed (BackgroundColor = %d): %lu"), CurrentBackgroundColor, GetLastError());
 
         // Terminate on failure
         exit(1);
@@ -214,6 +219,7 @@ void SConsoleRenderer::Write(const SGridPositionU32& GridPosition, const SWStrin
     // Write the text to the screen buffer
     swprintf(&ScreenBuffer[ValidateWriteBounds(GridPosition, TextSize)], BufferSize, Text.c_str());
 }
+
 void SConsoleRenderer::Draw()
 {
     // Draw the console border
@@ -308,7 +314,7 @@ SUInt32 SConsoleRenderer::ValidateWriteBounds(const SGridPositionU32& GridPositi
 
 void SConsoleRenderer::DrawBorder()
 {
-    DrawPanel(SGridPosition<SUInt32, SUInt32>(1, 0), GetScreenWidth() - 2, GetScreenHeight() - 1, WHITE, TEXT("#"), TEXT("#"));
+    DrawPanel(SGridPosition<SUInt32, SUInt32>(1, 0), GetScreenWidth() - 2, GetScreenHeight() - 1, FG_BLACK | GetCurrentBackgroundColor(), TEXT("#"), TEXT("#"));
 }
 
 bool SConsoleRenderer::SetTextColor(const SGridPositionU32& GridPosition, const SSize Size, WORD Color)
@@ -333,18 +339,44 @@ bool SConsoleRenderer::SetTextColor(const SGridPositionU32& GridPosition, const 
     return true;
 }
 
-void SConsoleRenderer::LockConsoleResize(HWND ConsoleHandle)
+bool SConsoleRenderer::SetBackgroundColor(const SGridPositionU32& GridPosition, const SUInt32 BufferSize, WORD BackgroundColor)
 {
-    // Get the current window style
+    // Fill the console with the specified background color
+    DWORD Written = 0;
+    if (!FillConsoleOutputAttribute(ConsoleScreenBuffer, BackgroundColor, BufferSize, {0, 0}, &Written))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+void SConsoleRenderer::ConfigureConsoleWindow(HWND ConsoleHandle)
+{
+    // Get the current window style of the console window
     LONG Style = GetWindowLong(ConsoleHandle, GWL_STYLE);
 
-    // Remove the resizable (WS_SIZEBOX) and maximize (WS_MAXIMIZEBOX) styles
+    // Disable the ability to resize the window (WS_SIZEBOX) and prevent maximizing it (WS_MAXIMIZEBOX)
     Style &= ~WS_SIZEBOX;
     Style &= ~WS_MAXIMIZEBOX;
 
-    // Apply the new window style
+    // Apply the modified window style back to the console window
     SetWindowLongPtr(ConsoleHandle, GWL_STYLE, Style);
 
-    // Enforce the changes
+    // Redraw the window with the new style to enforce the changes
     SetWindowPos(ConsoleHandle, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+
+    // Get handle to the standard output console buffer
+    HANDLE ConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
+
+    // Get the current input mode for the console input buffer
+    DWORD ConsoleMode;
+    GetConsoleMode(ConsoleInput, &ConsoleMode);
+
+    // Remove mouse support and quick edit mode
+    ConsoleMode &= ~ENABLE_MOUSE_INPUT;
+    ConsoleMode &= ~ENABLE_QUICK_EDIT_MODE;
+
+    // Apply the modified console mode settings
+    SetConsoleMode(ConsoleInput, ConsoleMode);
 }

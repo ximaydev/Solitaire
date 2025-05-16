@@ -5,10 +5,10 @@
 void SWorld::Write()
 {
 	// Loop through each actor in the world
-	for (const SAActor* Actor : Actors)
+	for (SAActor* Actor : Actors)
 	{
 		// Write the actors to the console at the given position
-		WriteAt(Actor->GetGridPosition());
+		Actor->Write();
 	}
 }
 

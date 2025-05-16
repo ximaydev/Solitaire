@@ -6,7 +6,6 @@ class SOLITAIRE_ENGINE_API SAudioMaster
 {
 public:
     /** Constructors */
-    SAudioMaster() = delete;
     SAudioMaster(IXAudio2* AudioEngine);
 
     /** Destructor */
