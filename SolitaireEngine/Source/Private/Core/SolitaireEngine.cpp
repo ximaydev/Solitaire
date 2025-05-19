@@ -23,7 +23,7 @@ bool SSolitaireEngine::Initialize(const SSharedPtr<SWorld>& NewWorld)
     if (!InputSystem->Initialize())
     {
         S_LOG_ERROR(LogSolitaireEngine, TEXT("Failed to initialize the input system."));
-        exit(1);
+        assert(false && "Failed to initialize the input system.");
     }
 
     // Get the Console Input Handler

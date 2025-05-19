@@ -13,12 +13,12 @@ void FSelectionCursor::Write()
     GridPosition = SGridPositionU32(CalculateCursorXPosition(GridPosition.first, Cursor), GridPosition.second);
 
     // Write the cursor at the new position to the console buffer with the specified color (RED)
-    SConsoleRenderer::GetInstance()->Write(GridPosition, Cursor, FG_RED);
+    SConsoleRenderer::GetInstance()->Write(GridPosition, Cursor, static_cast<SUInt32>(Cursor.size()), true, FG_RED);
 }
 
 void FSelectionCursor::ClearBuffer()
 {
-    SConsoleRenderer::GetInstance()->ClearBufferAt(SGridPositionU32(GridPosition.first, GridPosition.second), Cursor.size());
+    SConsoleRenderer::GetInstance()->ClearBufferAt(SGridPositionU32(GridPosition.first, GridPosition.second), static_cast<SUInt32>(Cursor.size()));
 }
 
 SConsoleSelector::SConsoleSelector(const SGridPositionU32& NewGridPosition) : SIConsoleRenderable(NewGridPosition) {}
@@ -75,7 +75,7 @@ void SConsoleSelector::Write()
     for (const auto& Element : Options)
     {
         // Write the element's key (converted to a string) to the console at the calculated position
-        ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index++), Element.first.data(), FG_WHITE);
+        ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index++), Element.first.data(), static_cast<SUInt32>(Element.first.size()), true, FG_WHITE);
     }
 
     // Clear old buffer
@@ -94,7 +94,7 @@ void SConsoleSelector::AddOption(const SWStringView& NewOption, const SCallback&
     Options.try_emplace(NewOption, Callback);
 
     // Write to the buffer newly added option at the given position
-    SConsoleRenderer::GetInstance()->Write(SGridPositionU32(GridPosition.first, GridPosition.second + static_cast<SUInt32>(Options.size())), NewOption.data(), FG_WHITE);
+    SConsoleRenderer::GetInstance()->Write(SGridPositionU32(GridPosition.first, GridPosition.second + static_cast<SUInt32>(Options.size())), NewOption.data(), static_cast<SUInt32>(NewOption.size()), true, FG_WHITE);
 
     //Check if the cursor is nullptr
     if (Cursor.get() == nullptr)

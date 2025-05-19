@@ -103,7 +103,7 @@ void SConsoleInputHandler::UpdateLine()
 void SConsoleInputHandler::Write()
 {
     SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
-    ConsoleRenderer->Write(GridPosition, CurrentLine, TextColor | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(GridPosition, CurrentLine, static_cast<SUInt32>(LineSize), true, TextColor | ConsoleRenderer->GetCurrentBackgroundColor());
 }
 
 void SConsoleInputHandler::ClearBuffer()

@@ -4,6 +4,7 @@
 #include <array>
 #include <iostream>
 #include <xaudio2.h>
+#include <cassert>
 #include "Globals.h"
 #include "Core/CoreTypes.h"
 #include "Core/Utility/FunctionLibrary/StringLibrary.h"

@@ -8,11 +8,8 @@ SFileLogger::SFileLogger()
 	// Check if the LogFileWriter is open
 	if (!LogFileWriter.is_open())
 	{
-		// Display an error message to the user
-		std::cout << "Failed to initialize File Logger. The log file could not be opened. Press any key to exit.\n";
-
-		// Exit the program with an error code (1 indicates failure)
-		exit(1);
+		// Exit the program with an error code
+		assert(false && "Failed to initialize File Logger");
 	}
 
 	//Create thread

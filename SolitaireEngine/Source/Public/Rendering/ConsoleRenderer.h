@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include "Globals.h"
 #include "Core/Utility/Colors.h"
+#include <cassert>
 
 /** Represents an invalid or uninitialized 2D grid position(commonly used as a sentinel value) */
 #define INVALID_GRID_POSITION SGridPositionU32((SUInt32)-1, (SUInt32)-1)
@@ -65,11 +66,11 @@ public:
     void ClearBufferAt(const SGridPositionU32& GridPosition, SSize Size);
 
     /** Writes to the screen buffer. */
-    void Write(const SGridPositionU32& GridPosition, const SWString& Text, WORD Color = FG_WHITE);
+    void Write(const SGridPositionU32& GridPosition, const SWString& Text, const SUInt32 Length, SBool bRespectBorder = true, WORD Color = FG_WHITE);
 
     /** Writes to the screen buffer. */
     template<SSize Size>
-    void Write(const SGridPositionU32& GridPosition, const SWString& Text, const SSpan<WORD, Size>& Colors);
+    void Write(const SGridPositionU32& GridPosition, const SWString& Text, const SUInt32 Length, const SSpan<WORD, Size>& Colors, SBool bRespectBorder = true);
 
     /** Performs the main draw routine. */
     void Draw();
@@ -103,7 +104,7 @@ protected:
     RECT ConsoleWindowRectangle;
 
     /** Screen buffer used for writing characters before flushing to the console. */
-    SUniquePtr<SWideChar[]> ScreenBuffer;
+    SUniquePtr<CHAR_INFO[]> ScreenBuffer;
 
     /** Width of the screen buffer in characters. */
     SUInt8 ScreenWidth = 128;
@@ -122,48 +123,70 @@ protected:
 
     /** Locks the console window size by disabling resizing and maximizing. */
     void ConfigureConsoleWindow(HWND ConsoleHandle);
+
+    /** Writes to the screen buffer. */
+    template<typename TColorProvider>
+    void WriteInternal(const SGridPositionU32& GridPosition, const SWString& Text, const SUInt32 Length, SBool bRespectBorder, TColorProvider GetColor);
 };
 
 template<SSize Size>
-void SConsoleRenderer::Write(const SGridPositionU32& GridPosition, const SWString& Text, const SSpan<WORD, Size>& Colors)
+void SConsoleRenderer::Write(const SGridPositionU32& GridPosition, const SWString& Text, const SUInt32 Length, const SSpan<WORD, Size>& Colors, SBool bRespectBorder)
 {
-    // Check if the sizes are the same
-    if (Text.size() != Colors.size())
+    WriteInternal(GridPosition, Text, Length, bRespectBorder, [&](SUInt32 Index) { return Colors[Index]; });
+}
+
+template<typename TColorProvider>
+void SConsoleRenderer::WriteInternal(const SGridPositionU32& GridPosition, const SWString& Text, const SUInt32 Length, SBool bRespectBorder, TColorProvider GetColor)
+{
+    // Writes text to the screen buffer starting at the given grid position.
+    // Respects left/right borders if bRespectBorder is true by constraining X between MinX and MaxX.
+    SGridPositionU32 TempGridPosition = GridPosition;
+
+    // Define horizontal boundaries
+    SUInt32 MinX = 0;
+    SUInt32 MaxX = ScreenWidth - 1;
+
+    // Check if we respect the border
+    if (bRespectBorder)
     {
-        S_LOG_WARNING(LogConsoleRenderer, TEXT("Text size - %d isn't equal to Colors size - %d"), Text.size(), Colors.size());
-    }
+        // Reinitialize MinX and MaxX
+        MinX = 2;
+        MaxX = ScreenWidth - 3;
 
-    // Characters considered invalid for coloring
-    SArray<SWideChar, 4> InvalidCharacters = { TEXT(' '), TEXT('\n'), TEXT('\r'), TEXT('\t') };
-
-    // Lambda to check if a given character matches the first character of Text
-    auto IsAnyOf = [&Text](SWideChar Character)
+        // Clamp initial X to the minimum border if needed
+        if (TempGridPosition.first < MinX)
         {
-            return Character == Text[0];
-        };
-
-    //Get the size of the text
-    SSize TextSize = Text.size();
-
-    // Apply color only if the text is not empty, is longer than one character,
-    // and the first character is not considered invalid
-    if (TextSize > 1 && !Text.empty())
-    {
-        if (std::find_if(InvalidCharacters.begin(), InvalidCharacters.end(), IsAnyOf) == InvalidCharacters.end())
-        {
-            // Iterate through each character
-            for (SSize Index = 0; Index < Colors.size(); Index++)
-            {
-                // Set the text color at the current character's grid position
-                SetTextColor(SGridPositionU32(GridPosition.first + static_cast<SUInt32>(Index), GridPosition.second), 1, Colors[Index]);
-            }
-        }
-        else
-        {
-            S_LOG(LogConsoleRenderer, TEXT("Skipping SetTextColor: character '%c' is invalid."), Text[0]);
+            TempGridPosition.first = MinX;
         }
     }
 
-    // Write the text to the screen buffer
-    swprintf(&ScreenBuffer[ValidateWriteBounds(GridPosition, TextSize)], BufferSize, Text.c_str());
+    for (SUInt32 Index = 0; Index < Length; Index++)
+    {
+        // Abort writing if the text exceeds the screen's vertical boundary
+        if (TempGridPosition.second >= ScreenHeight)
+        {
+            S_LOG_WARNING(LogConsoleRenderer, TEXT("Write aborted: text exceeds screen height at Y=%u"), TempGridPosition.second);
+            assert(false && "Text rendering aborted: exceeds screen height");
+        }
+
+        // Wrap to next line if text reaches or exceeds right border
+        if (TempGridPosition.first > MaxX)
+        {
+            // Reset to MinX(left margin inside border),
+            TempGridPosition.first = MinX;
+
+            // Incremented to move to the next line vertically
+            TempGridPosition.second++;
+        }
+
+        // Validate the write position and write the character and color attribute
+        const SUInt32 BufferIndex = ValidateWriteBounds(TempGridPosition, 1);
+
+        // Set information at BufferIndex cell
+        ScreenBuffer[BufferIndex].Char.UnicodeChar = Index < Text.size() ? Text[Index] : TEXT(' ');
+        ScreenBuffer[BufferIndex].Attributes = GetColor(Index);
+
+        // Advance to the next character position
+        TempGridPosition.first++;
+    }
 }

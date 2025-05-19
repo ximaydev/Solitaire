@@ -1,6 +1,5 @@
 #include "SolitaireEnginePCH.h"
 #include "Rendering/ConsoleRenderer.h"
-#include <cassert>
 #include "Config/IniFile.h"
 #include "Config/IniFileManager.h"
 
@@ -12,9 +11,7 @@ SConsoleRenderer::SConsoleRenderer()
     {
         // Log error with code
         S_LOG_ERROR(LogConsoleRenderer, TEXT("Failed to get STD_OUTPUT_HANDLE: %lu"), GetLastError());
-
-        // Exit program on failure
-        exit(1);                           
+        assert(false && "Failed to get STD_OUTPUT_HANDLE");
     }
 
     // Get system-defined minimum console dimensions
@@ -56,9 +53,7 @@ SConsoleRenderer::SConsoleRenderer()
     {
         // Log failure code
         S_LOG_ERROR(LogConsoleRenderer, TEXT("SetConsoleScreenBufferSize failed: %lu"), GetLastError());
-
-        // Terminate on failure
-        exit(1);
+        assert(false && "SetConsoleScreenBufferSize failed");
     }
 
     // Define window rectangle to match buffer dimensions (inclusive coordinates)
@@ -67,9 +62,7 @@ SConsoleRenderer::SConsoleRenderer()
     {
         // Log failure code
         S_LOG_ERROR(LogConsoleRenderer, TEXT("SetConsoleWindowInfo failed: %lu"), GetLastError());  
-
-        // Terminate on failure
-        exit(1);
+        assert(false && "SetConsoleWindowInfo failed");
     }
 
     // Get HWND for console window to manipulate position
@@ -78,9 +71,7 @@ SConsoleRenderer::SConsoleRenderer()
     {
         // Log null handle
         S_LOG_ERROR(LogConsoleRenderer, TEXT("GetConsoleWindow returned NULL"));  
-
-        // Terminate on failure
-        exit(1);  
+        assert(false && "GetConsoleWindow returned NULL");
     }
 
     // Obtain current window rectangle (screen coordinates)
@@ -88,9 +79,7 @@ SConsoleRenderer::SConsoleRenderer()
     {
         // Log failure code
         S_LOG_ERROR(LogConsoleRenderer, TEXT("GetWindowRect failed: %lu"), GetLastError());
-
-        // Terminate on failure
-        exit(1);
+        assert(false && "GetWindowRect failed");
     }
 
     // Calculate center position of window on the screen
@@ -108,7 +97,7 @@ SConsoleRenderer::SConsoleRenderer()
     ConfigureConsoleWindow(ConsoleWindow);
 
     // Allocate in-memory buffer for rendering characters
-    ScreenBuffer = std::make_unique<SWideChar[]>(BufferSize);
+    ScreenBuffer = std::make_unique<CHAR_INFO[]>(BufferSize);
 
     // Clear buffer contents (custom method)
     ClearBuffer();
@@ -119,9 +108,7 @@ SConsoleRenderer::SConsoleRenderer()
     {
         // Log failure code
         S_LOG_ERROR(LogConsoleRenderer, TEXT("CreateConsoleScreenBuffer failed: %lu"), GetLastError());
-
-        // Terminate on failure
-        exit(1); 
+        assert(false && "CreateConsoleScreenBuffer failed");
     }
 
     // Activate the newly created console screen buffer
@@ -129,22 +116,27 @@ SConsoleRenderer::SConsoleRenderer()
     {
         // Log failure code
         S_LOG_ERROR(LogConsoleRenderer, TEXT("SetConsoleActiveScreenBuffer failed: %lu"), GetLastError());
-
-        // Terminate on failure
-        exit(1);
+        assert(false && "SetConsoleActiveScreenBuffer failed");
     }
 
     // Get Current Background Color from the DefaultEngine.ini file
     CurrentBackgroundColor = SIniFileManager::GetInstance()->GetConfigFile(DefaultEngineConfig)->GetValueFromKey<WORD>(TEXT("[Solitaire.ConsoleStyle]"), TEXT("BackgroundColor"));
+    
+    // Initialize each CHAR_INFO element in the screen buffer
+    for (SUInt16 Index = 0; Index < BufferSize; Index++)
+    {
+        // Set the character to a space ' ' to clear the visible content,
+        // and apply the current background color as the attribute to maintain consistent background.
+        ScreenBuffer[Index].Char.UnicodeChar = TEXT(' ');
+        ScreenBuffer[Index].Attributes = CurrentBackgroundColor;
+    }
     
     // Set the background color
     if (!SetBackgroundColor(SGridPositionU32(0, 0), ScreenWidth * ScreenHeight, CurrentBackgroundColor))
     {
         // Log failure code
         S_LOG_ERROR(LogConsoleRenderer, TEXT("FillConsoleOutputAttribute failed (BackgroundColor = %d): %lu"), CurrentBackgroundColor, GetLastError());
-
-        // Terminate on failure
-        exit(1);
+        assert(false && "FillConsoleOutputAttribute failed");
     }
 
     // Hide cursor
@@ -152,9 +144,7 @@ SConsoleRenderer::SConsoleRenderer()
     {
         // Log failure code
         S_LOG_ERROR(LogConsoleRenderer, TEXT("ShowConsoleCursor failed: %lu"), GetLastError());
-
-        // Terminate on failure
-        exit(1);
+        assert(false && "ShowConsoleCursor failed");
     }
 
     // Log successful initialization with final dimensions
@@ -173,51 +163,48 @@ void SConsoleRenderer::ClearBuffer()
     // Loop through all buffer cells
     for (SInt32 Index = 0; Index < BufferSize; Index++)
     {
-        // Set each cell to an empty wide character
-        ScreenBuffer[Index] = TEXT(' ');
+        // Set each cell to an empty wide character and default background
+        ScreenBuffer[Index].Char.UnicodeChar = TEXT(' ');
+        ScreenBuffer[Index].Attributes = GetCurrentBackgroundColor();
     }
 }
 
 void SConsoleRenderer::ClearBufferAt(const SGridPositionU32& GridPosition, SSize Size)
 {
-    // Create the empty string
-    SWString EmptyString;
-    EmptyString.resize(Size, TEXT(' '));
+    // Create TempGridPosition to iterate from the starting point
+    SGridPositionU32 TempGridPosition = GridPosition;
 
-    // Write the empty text to the screen buffer
-    swprintf(&ScreenBuffer[ValidateWriteBounds(GridPosition, Size)], BufferSize, EmptyString.c_str());
+    while (Size > 0)
+    {
+        // Check if we've exceeded the screen height
+        if (TempGridPosition.second >= ScreenHeight)
+            break;
+
+        // If we've reached the end of a line, wrap to the next line
+        if (TempGridPosition.first >= ScreenWidth)
+        {
+            TempGridPosition.first = 0;
+            TempGridPosition.second++;
+        }
+
+        // Calculate the linear index in the screen buffer
+        SUInt32 Index = ValidateWriteBounds(TempGridPosition, 1);
+
+        // Clear the character at the current position:
+        // - Set character to a space ' '
+        // - Apply the current background color as the attribute
+        ScreenBuffer[Index].Char.UnicodeChar = TEXT(' ');
+        ScreenBuffer[Index].Attributes = GetCurrentBackgroundColor();
+
+        // Move to the next horizontal cell
+        TempGridPosition.first++;
+        Size--;
+    }
 }
 
-void SConsoleRenderer::Write(const SGridPositionU32& GridPosition, const SWString& Text, WORD Color)
+void SConsoleRenderer::Write(const SGridPositionU32& GridPosition, const SWString& Text, const SUInt32 Length,SBool bRespectBorder, WORD Color)
 {
-    // Characters considered invalid for coloring
-    SArray<SWideChar, 4> InvalidCharacters = { TEXT(' '), TEXT('\n'), TEXT('\r'), TEXT('\t') };
-
-    // Lambda to check if a given character matches the first character of Text
-    auto IsAnyOf = [&Text](SWideChar Character)
-        {
-            return Character == Text[0];
-        };
-
-    //Get the size of the text
-    SSize TextSize = Text.size();
-
-    // Apply color only if the text is not empty,
-    // and the first character is not considered invalid
-    if (!Text.empty())
-    {
-        if (std::find_if(InvalidCharacters.begin(), InvalidCharacters.end(), IsAnyOf) == InvalidCharacters.end())
-        {
-            SetTextColor(GridPosition, TextSize, Color);
-        }
-        else
-        {
-            S_LOG(LogConsoleRenderer, TEXT("Skipping SetTextColor: character '%c' is invalid."), Text[0]);
-        }
-    }
-
-    // Write the text to the screen buffer
-    swprintf(&ScreenBuffer[ValidateWriteBounds(GridPosition, TextSize)], BufferSize, Text.c_str());
+    WriteInternal(GridPosition, Text, Length, bRespectBorder, [&](SUInt32 Index){ return Color; });
 }
 
 void SConsoleRenderer::Draw()
@@ -225,9 +212,18 @@ void SConsoleRenderer::Draw()
     // Draw the console border
     DrawBorder();
 
-    // Write the entire screen buffer to the console output starting at position (0, 0)
-    DWORD BytesWritten = 0;
-    WriteConsoleOutputCharacterW(ConsoleScreenBuffer, ScreenBuffer.get(), BufferSize, { 0, 0 }, &BytesWritten);
+    // Set the size of the CHAR_INFO buffer being written (width x height)
+    COORD BufferSize_COORD = COORD(ScreenWidth, ScreenHeight);
+
+    // Set the top-left origin within the buffer (usually (0, 0))
+    COORD Buffer_COORD = COORD(0, 0);
+
+    // Define the target rectangle in the console where the buffer will be rendered
+    // It starts at (0, 0) and ends at (ScreenWidth - 1, ScreenHeight - 1)
+    SMALL_RECT WriteRegion = SMALL_RECT(0, 0, ScreenWidth - 1, ScreenHeight - 1);
+
+    // Write the contents of the screen buffer to the actual console output
+    WriteConsoleOutputW(ConsoleScreenBuffer, ScreenBuffer.get(), BufferSize_COORD, Buffer_COORD, &WriteRegion);
 }
 
 bool SConsoleRenderer::ShowConsolCursor(SBool bShowCursor)
@@ -265,7 +261,7 @@ void SConsoleRenderer::DrawHorizontalPanel(const SGridPositionU32& GridPosition,
     }
 
     // Write the constructed string to the screen buffer at the specified position with the given color
-    Write(GridPosition, HorizontalPanel, Color);
+    Write(GridPosition, HorizontalPanel, static_cast<SUInt32>(HorizontalPanel.size()), false, Color);
 }
 
 void SConsoleRenderer::DrawVerticalPanel(const SGridPositionU32& GridPosition, const SUInt32 Height, WORD Color, const SWString& Character)
@@ -278,7 +274,7 @@ void SConsoleRenderer::DrawVerticalPanel(const SGridPositionU32& GridPosition, c
     for (SUInt32 Index = 0; Index < Height; Index++)
     {
         // Write the character to the screen buffer at the specified position with the given color
-        Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index), Character, Color);
+        Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index), Character, static_cast<SUInt32>(Character.size()), false, Color);
     }
 }
 

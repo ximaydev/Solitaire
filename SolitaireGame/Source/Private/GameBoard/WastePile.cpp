@@ -61,7 +61,7 @@ void SAWastePile::MoveCardsToWastePile(SVector<SSharedPtr<SACard>>& StockPileCar
 		const SGridPositionU32& GridPosition = GetGridPosition();
 
 		// Move the card 3 units to the right on the grid
-		Card->SetGridPosition(SGridPositionU32(GridPosition.first + (Index * 8) , GridPosition.second));
+		Card->SetGridPosition(SGridPositionU32(GridPosition.first + (Index * 4) , GridPosition.second));
 
 		// Flip the card face-up
 		FCardInfo& CardInfo = Card->GetCardInfo_Mutable();

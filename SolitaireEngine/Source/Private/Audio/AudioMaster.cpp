@@ -14,7 +14,7 @@ SAudioMaster::SAudioMaster(IXAudio2* AudioEngine)
 		MasteringVoice = nullptr;
 
 		// Terminate the application since the mastering voice is critical for audio functionality.
-		exit(1);
+		assert(false && "Failed to create mastering voice on audio engine");
 	}
 	else
 	{

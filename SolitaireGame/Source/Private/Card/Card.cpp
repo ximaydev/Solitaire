@@ -107,7 +107,8 @@ void SACard::Write()
         SSpan<WORD, 7> TempColors(Colors.data() + Index * 7, 7);
 
         // Write the current line of text at the appropriate vertical offset, using individual character colors from TempColors.
-        ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index), StringLines[Index], TempColors);
+        const SWString& Line = StringLines[Index];
+        ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index), Line, static_cast<SUInt32>(Line.size()), TempColors, true);
     }
 }
 

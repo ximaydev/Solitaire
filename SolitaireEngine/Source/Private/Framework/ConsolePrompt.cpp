@@ -30,7 +30,7 @@ void SConsolePrompt::Write()
     SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
 
     // Write the prompt text at the specified position with foreground and current background color
-    ConsoleRenderer->Write(GridPosition, TextToShow, TextColor | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(GridPosition, TextToShow, static_cast<SUInt32>(TextToShow.size()), true, TextColor | ConsoleRenderer->GetCurrentBackgroundColor());
 }
 
 void SConsolePrompt::ClearBuffer()

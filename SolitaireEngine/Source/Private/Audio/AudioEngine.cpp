@@ -22,7 +22,7 @@ bool SAudioEngine::Initialize()
 	{
 		// Exit the application if COM initialization fails
 		S_LOG_ERROR(LogAudio, TEXT("COM initialization failed for Audio Engine. HRESULT: 0x%08X"), CoResult);
-		exit(1);
+		assert(false && "COM initialization failed for Audio Engine.");
 	}
 
 	// Try to create the XAudio2 engine with the default processor.
@@ -31,7 +31,7 @@ bool SAudioEngine::Initialize()
 	{
 		// If creation fails, log the error and terminate the application.
 		S_LOG_ERROR(LogAudio, TEXT("Failed to create XAudio2 engine with the default processor. HRESULT: 0x%08X. Application will be terminated."), Result);
-		exit(1);
+		assert(false && "Failed to create XAudio2 engine with the default processor.");;
 	}
 
 	// Create the master voice wrapper.
