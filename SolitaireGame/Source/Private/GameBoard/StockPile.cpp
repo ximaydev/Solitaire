@@ -1,7 +1,7 @@
 #include "SolitaireGamePCH.h"
 #include "GameBoard/StockPile.h"
 #include "GameBoard/WastePile.h"
-#include "Card/Card.h"
+#include "GameBoard/Card.h"
 #include "Framework/World.h"
 
 SAStockPile::SAStockPile(const SGridPositionU32& NewGridPosition) : SAActor(NewGridPosition) {}

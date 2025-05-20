@@ -1,6 +1,6 @@
 #include "SolitaireGamePCH.h"
 #include "GameBoard/FoundationList.h"
-#include "Card/Card.h"
+#include "GameBoard/Card.h"
 
 bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SUInt8 Position)
 {

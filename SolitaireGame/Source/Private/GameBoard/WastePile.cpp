@@ -1,6 +1,6 @@
 #include "SolitaireGamePCH.h"
 #include "GameBoard/WastePile.h"
-#include "Card/Card.h"
+#include "GameBoard/Card.h"
 
 SAWastePile::SAWastePile(const SGridPositionU32& NewGridPosition) : SAActor(NewGridPosition) {}
 

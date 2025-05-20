@@ -1,5 +1,5 @@
 ﻿#include "SolitaireGamePCH.h"
-#include "Card/Card.h"
+#include "GameBoard/Card.h"
 #include "Rendering/ConsoleRenderer.h"
 
 void FCardInfo::SetCardColor()

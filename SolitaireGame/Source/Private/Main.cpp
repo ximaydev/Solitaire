@@ -1,10 +1,11 @@
 #include "SolitaireGamePCH.h"
-#include "Card/Card.h"
+#include "GameBoard/Card.h"
 #include "GameBoard/WastePile.h"
 #include "GameBoard/StockPile.h"
 #include "Framework/World.h"
 #include "Inputs/ConsoleInputHandler.h"
 #include "Framework/ConsolePrompt.h"
+#include "GameBoard/Tableau.h"
 
 void GenerateFullDeck(SVector<SSharedPtr<SACard>>& StockPileCards)
 {
@@ -14,9 +15,9 @@ void GenerateFullDeck(SVector<SSharedPtr<SACard>>& StockPileCards)
     constexpr int NumRanks = 13;
     constexpr int NumSuits = 4;
 
-    for (int suit = 0; suit < NumSuits; ++suit)
+    for (int suit = 1; suit <= NumSuits; ++suit)
     {
-        for (int rank = 0; rank < NumRanks; ++rank)
+        for (int rank = 1; rank <= NumRanks; ++rank)
         {
             // Przyk³ad konstrukcji FCardInfo, dostosuj do swoich enumów
             FCardInfo CardInfo(static_cast<ECardRank>(rank), static_cast<ECardSuit>(suit), false);
