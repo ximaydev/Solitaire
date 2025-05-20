@@ -70,22 +70,22 @@ void SACard::Write()
         // Highlight the rank and suit characters with the card's assigned color
         // Rank top-left (line 1, column 1)
         WORD CardColor = CardInfo.GetColor();
-        Colors[1 * 7 + 1] = CardColor | BG_WHITE;
+        Colors[1 * CardInfo.CardSizeX + 1] = CardColor | BG_WHITE;
 
         // Suit symbol (line 2, column 3)
-        Colors[2 * 7 + 3] = CardColor | BG_WHITE;
+        Colors[2 * CardInfo.CardSizeX + 3] = CardColor | BG_WHITE;
 
         // Rank bottom-right (line 3, column 5)
-        Colors[3 * 7 + 5] = CardColor | BG_WHITE;
+        Colors[3 * CardInfo.CardSizeX + 5] = CardColor | BG_WHITE;
 
         // If rank has two characters (e.g., "10"), color the second character too
         if (RankString.size() >= 2)
         {
             // Second character of top rank (line 1, column 2)
-            Colors[1 * 7 + 2] = CardColor | BG_WHITE;
+            Colors[1 * CardInfo.CardSizeX + 2] = CardColor | BG_WHITE;
 
             // Second character of bottom rank (line 3, column 4)
-            Colors[3 * 7 + 4] = CardColor | BG_WHITE;
+            Colors[3 * CardInfo.CardSizeX + 4] = CardColor | BG_WHITE;
         }
     }
     else

@@ -51,17 +51,22 @@ void SAWastePile::MoveCardsToWastePile(SVector<SSharedPtr<SACard>>& StockPileCar
 	// Remove the moved cards from the stock pile
 	StockPileCards.erase(MoveStartIterator, StockPileCards.end());
 
-	// Loop through the last 'Amount' cards that were added to the waste pile
+	// Calculate the total horizontal shift needed for positioning all cards
+	SUInt32 TotalShift = (Amount - 1) * 4;
+
 	for (SUInt32 Index = 0; Index < Amount; Index++)
 	{
-		// Access one of the last 'Amount' cards in the waste pile (from the back)
+		// Access the card from the end of the pile (starting from the last card)
 		SSharedPtr<SACard> Card = Cards[Cards.size() - Index - 1];
 
-		// Get the current grid position of the waste pile
+		// Get the current grid position of the pile
 		const SGridPositionU32& GridPosition = GetGridPosition();
 
-		// Move the card 3 units to the right on the grid
-		Card->SetGridPosition(SGridPositionU32(GridPosition.first + (Index * 4) , GridPosition.second));
+		// Calculate the X position reversed: start from the rightmost position and move leftwards
+		SUInt32 PositionX = GridPosition.first + TotalShift - (Index * 4);
+
+		// Set the calculated grid position to the card
+		Card->SetGridPosition(SGridPositionU32(PositionX, GridPosition.second));
 
 		// Flip the card face-up
 		FCardInfo& CardInfo = Card->GetCardInfo_Mutable();
