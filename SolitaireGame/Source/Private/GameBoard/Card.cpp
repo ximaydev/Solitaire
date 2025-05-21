@@ -17,7 +17,8 @@ void FCardInfo::SetCardColor()
     }
 }
 
-SACard::SACard(const SGridPositionU32& NewGridPosition, const FCardInfo& NewCardInfo) : SAActor(NewGridPosition), CardInfo(NewCardInfo) {}
+SACard::SACard(const SGridPositionU32& NewGridPosition, const FCardInfo& NewCardInfo, SSharedPtr<SACard> NewNextCard) 
+    : SAActor(NewGridPosition), CardInfo(NewCardInfo), NextCard(NewNextCard) {}
 
 void SACard::Write()
 {
@@ -123,6 +124,18 @@ void SACard::ClearBuffer()
         // Clear one horizontal row at a time at the card's position
         ConsoleRenderer->ClearBufferAt(SGridPositionU32(GridPosition.first, GridPosition.second + Index), CardInfo.CardSizeX);
     }
+}
+
+SBool SACard::CanBePlacedOnTableau(const FCardInfo& Other) const
+{
+    // Check if this card's rank is one lower than the target card (descending order rule)
+    SBool bIsRankCorrect = static_cast<SUInt8>(CardInfo.GetCardRank()) + 1 == static_cast<SUInt8>(Other.GetCardRank());
+
+    // Check if the suits are of opposite colors
+    SBool bIsColorOpposite = !IsSameSuit(Other);
+
+    // The card can be placed if both rules are satisfied
+    return bIsRankCorrect && bIsColorOpposite;
 }
 
 void CardRankToString(ECardRank CardRank, SWString& OutString)

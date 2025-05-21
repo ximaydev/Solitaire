@@ -14,7 +14,8 @@ public:
 	SAActor(const SGridPositionU32& NewGridPosition) : SIConsoleRenderable(NewGridPosition), World(nullptr) {}
 
 	/** Get World */
-	inline SWorld* GetWorld() const { return World; }
+	template<typename WorldType = SWorld>
+	inline WorldType* GetWorld() const { return static_cast<WorldType*>(World); }
 
 protected:
 	/** Pointer to the current world */

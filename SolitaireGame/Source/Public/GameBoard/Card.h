@@ -87,7 +87,7 @@ class SACard final : public SAActor
 {
 public:
 	/** Constructors */
-	SACard(const SGridPositionU32& NewGridPosition, const FCardInfo& NewCardInfo);
+	SACard(const SGridPositionU32& NewGridPosition, const FCardInfo& NewCardInfo, SSharedPtr<SACard> NewNextCard);
 
     /** Renders the card at a specified grid position. */
     void Write() override;
@@ -101,7 +101,25 @@ public:
     /** Get Card Info */
     const FCardInfo& GetCardInfo() const { return CardInfo; }
 
+    /** Determines if this card can be placed on another card in the tableau. */
+    SBool CanBePlacedOnTableau(const FCardInfo& Other) const;
+
+    /** Checks if both cards belong to the same suit. */
+    inline SBool IsSameSuit(const FCardInfo& Other) const { return CardInfo.GetCardSuit() == Other.GetCardSuit(); }
+
+    /** Determines if this card can be placed on the given foundation stack card. */
+    inline SBool CanBePlacedOnFoundation(const FCardInfo& Other) const { return CardInfo.GetCardSuit() == Other.GetCardSuit() && static_cast<SUInt8>(CardInfo.GetCardRank()) == static_cast<SUInt8>(Other.GetCardRank()) + 1; }
+
+    /** Returns true if the card can be placed on an empty tableau column (only Kings). */
+    inline SBool CanBePlacedOnEmptyTableau() const { return CardInfo.GetCardRank() == ECardRank::King; }
+
+    /** Returns true if this card can start a foundation pile (only Aces). */
+    inline SBool IsFoundationBaseCard() const { return CardInfo.GetCardRank() == ECardRank::Ace; }
+
 private:
     /** Stores card information (rank, suit, face up). */
     FCardInfo CardInfo;
+
+    /** Link to the next card in the tableau sequence. nullptr if this is the bottom card. */
+    SSharedPtr<SACard> NextCard;
 };
