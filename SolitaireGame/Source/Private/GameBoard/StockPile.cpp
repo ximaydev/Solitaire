@@ -73,8 +73,8 @@ void SAStockPile::FillInitialCards(SVector<SSharedPtr<SACard>>& InitialCards)
 
     for (SSharedPtr<SACard>& Card : InitialCards)
     {
-        // Assign the stock pile's grid position to the card
-        Card->SetGridPosition(StockPileGridPosition);
+        // Set to nullptr next card because we don't need it and assign the stock pile's grid position to the card
+        Card->SetNextCard(StockPileGridPosition, nullptr);
 
         // Ensure the card is face-down when placed in the stock pile
         Card->GetCardInfo_Mutable().IsFaceUp = false;

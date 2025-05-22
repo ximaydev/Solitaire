@@ -24,9 +24,9 @@ void SATableau::Write()
         // Iterate through each card in the current group
         for (const SSharedPtr<SACard>& VectorCard : Card)
         {
-            // Assign grid position based on current column and row offsets
-            VectorCard->SetGridPosition(SGridPositionU32(GridPosition.first + (ColumnCounter * 8), GridPosition.second + (CardsCounter * 3)));
+            // Write
             VectorCard->Write();
+
             // Move to the next row
             CardsCounter++;
         }
@@ -52,15 +52,36 @@ void SATableau::ClearBuffer()
 
 void SATableau::GenerateColumns(SVector<SSharedPtr<SACard>>&& NewCards)
 {
+    // TODO debug it
     for (SUInt32 Index = 0; Index < 7; Index++)
     {
-        // Move 'Index' cards from the beginning of NewCards to the current column
-        Cards[Index] = SVector<SSharedPtr<SACard>>(std::make_move_iterator(NewCards.begin()), std::make_move_iterator(NewCards.begin() + Index + 1));
+        // Create a temporary array to hold the cards for this column
+        SVector<SSharedPtr<SACard>> TempCards;
+        TempCards.reserve(Index + 1);
 
-        // Flip the top card in the current column face-up
+        for (SUInt32 IndexJ = 0; IndexJ <= Index; IndexJ++)
+        {
+            // Move card from NewCards to TempCards
+            SSharedPtr<SACard> Card = std::move(NewCards.at(IndexJ));
+            TempCards.push_back(Card);
+
+            // Link the previous card to the current one (skip first row and first card)
+            if (IndexJ > 0)
+            {
+                TempCards[IndexJ - 1]->SetNextCard(SGridPositionU32(GridPosition.first + (Index * 8), GridPosition.second + (IndexJ * 3)), TempCards[IndexJ]);
+            }
+        }
+
+        // To be sure set to nullptr
+        TempCards.back()->SetNextCard(nullptr);
+
+        // Move the built column into the tableau
+        Cards[Index] = std::move(TempCards);
+
+        // Flip the top card face-up (last in column)
         Cards[Index].back()->GetCardInfo_Mutable().IsFaceUp = true;
 
-        // Remove the moved cards from NewCards
+        // Remove the used cards from NewCards
         NewCards.erase(NewCards.begin(), NewCards.begin() + Index + 1);
     }
 }

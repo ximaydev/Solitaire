@@ -19,9 +19,7 @@ void GenerateFullDeck(SVector<SSharedPtr<SACard>>& StockPileCards)
     {
         for (int rank = 1; rank <= NumRanks; ++rank)
         {
-            // Przyk³ad konstrukcji FCardInfo, dostosuj do swoich enumów
             FCardInfo CardInfo(static_cast<ECardRank>(rank), static_cast<ECardSuit>(suit), false);
-            // Pozycjê mo¿esz ustawiæ na 0,0 lub wed³ug potrzeby
             auto Card = std::make_shared<SACard>(SGridPositionU32(0, 0), CardInfo, nullptr);
 
             StockPileCards.push_back(std::move(Card));
@@ -41,7 +39,7 @@ int main()
     SSharedPtr<SWorld> World = std::make_shared<SWorld>();
 
     SSharedPtr<SACard> Card = World->SpawnActor<SSharedPtr<SACard>, SACard>(SGridPositionU32(68, 24), FCardInfo(ECardRank::Jack, ECardSuit::Spades, false), nullptr);
-    SSharedPtr<SConsolePrompt> ConsolePromt = World->SpawnActor<SSharedPtr<SConsolePrompt>, SConsolePrompt>(SGridPositionU32(90, 45), FG_YELLOW, TEXT("Hello World. Type something :"), std::bind(LogSomething));
+    SSharedPtr<SAConsolePrompt> ConsolePromt = World->SpawnActor<SSharedPtr<SAConsolePrompt>, SAConsolePrompt>(SGridPositionU32(90, 45), FG_YELLOW, TEXT("Hello World. Type something :"), std::bind(LogSomething));
 
     SVector<SSharedPtr<SACard>> StockPileCards;
     GenerateFullDeck(StockPileCards);

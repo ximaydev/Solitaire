@@ -42,6 +42,12 @@ void CardRankToString(ECardRank CardRank, SWString& OutString);
 /** Converts a card suit enum to its symbolic string representation (e.g., "♠", "♥"). */
 void CardSuitToString(ECardSuit CardSuit, SWString& OutString);
 
+/** Converts a string representation of a card rank to the corresponding enum value. Accepts values like "A", "2", ..., "10", "J", "Q", "K". */
+ECardRank StringToCardRank(const SWString& String);
+
+/**  Converts a string representation of a card suit to the corresponding enum. Accepts characters like "H", "D", "C", "S" (case-insensitive). */
+ECardSuit StringToCardSuit(const SWString& String);
+
 /**
  * Structure representing a single playing card.
  * Combines rank and suit, plus a flag indicating if the card is revealed.
@@ -87,7 +93,7 @@ class SACard final : public SAActor
 {
 public:
 	/** Constructors */
-	SACard(const SGridPositionU32& NewGridPosition, const FCardInfo& NewCardInfo, SSharedPtr<SACard> NewNextCard);
+	SACard(const SGridPositionU32& NewGridPosition, const FCardInfo& NewCardInfo);
 
     /** Renders the card at a specified grid position. */
     void Write() override;
@@ -103,6 +109,12 @@ public:
 
     /** Determines if this card can be placed on another card in the tableau. */
     SBool CanBePlacedOnTableau(const FCardInfo& Other) const;
+
+    /** Sets the next card in a sequence and updates its grid position. */
+    void SetNextCard(const SGridPositionU32& NextCardGridPosition, SSharedPtr<SACard> NewNextCard);
+
+    /** Sets the next card in a sequence */
+    void SetNextCard(SSharedPtr<SACard> NewNextCard) { NextCard = NewNextCard; }
 
     /** Checks if both cards belong to the same suit. */
     inline SBool IsSameSuit(const FCardInfo& Other) const { return CardInfo.GetCardSuit() == Other.GetCardSuit(); }
@@ -121,5 +133,5 @@ private:
     FCardInfo CardInfo;
 
     /** Link to the next card in the tableau sequence. nullptr if this is the bottom card. */
-    SSharedPtr<SACard> NextCard;
+    SSharedPtr<SACard> NextCard = nullptr;
 };

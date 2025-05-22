@@ -16,7 +16,7 @@ void SStringLibrary::GetCurrentTimeAsString(const SString& Format, SString& OutS
 	auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 
 	// Create a stringstream to format the time according to the provided format
-	SStringStream StringStream;
+	SOStringStream StringStream;
 
 	// Use std::put_time to format the time into a string according to the given format
 	StringStream << std::put_time(&LocalTime, Format.c_str()) << "_" << std::setfill('0') << std::setw(3) << ms.count();
@@ -47,7 +47,7 @@ void SStringLibrary::GetCurrentTimeAsString(const SWString& Format, SWString& Ou
 	auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 
 	// Create a stringstream to format the time according to the provided format
-	SWStringStream StringStream;
+	SWOStringStream StringStream;
 
 	// Use std::put_time to format the time into a string according to the given format
 	StringStream << std::put_time(&LocalTime, Format.c_str()) << TEXT("_") << std::setfill<SWideChar>(TEXT('0')) << std::setw(3) << ms.count();

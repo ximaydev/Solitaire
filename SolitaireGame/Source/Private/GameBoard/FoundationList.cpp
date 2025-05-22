@@ -16,7 +16,10 @@ bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SU
             Cards.push_back(NewCard);
 
             // Set Card Info
-            SetCardInfo(NewCard.get(), Position);
+            SetCardInfo(NewCard);
+
+            // Set Next card for the penultimate card
+            NewCard->SetNextCard(SGridPositionU32(GridPosition.first + (Position * 8), GridPosition.second), nullptr);
 
             S_LOG(LogGameBoard, TEXT("Successfully added Ace to an empty foundation."));
             return true;
@@ -41,11 +44,14 @@ bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SU
         // Check if rank is exactly one higher
         if ((static_cast<SUInt8>(LastCardInfo.GetCardRank()) + 1) == static_cast<SUInt8>(NewCardInfo.GetCardRank()))
         {
+            // Set Next card for the penultimate card
+            Cards.back()->SetNextCard(SGridPositionU32(GridPosition.first + (Position * 8), GridPosition.second), NewCard);
+
             // Push card to Cards
             Cards.push_back(NewCard);
 
             // Set Card Info
-            SetCardInfo(NewCard.get(), Position);
+            SetCardInfo(NewCard);
 
             S_LOG(LogGameBoard, TEXT("Successfully added card to the foundation."));
             return true;
@@ -63,11 +69,8 @@ bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SU
     return false;
 }
 
-void SAFoundationList::SetCardInfo(SACard* Card, SUInt8 Position)
+void SAFoundationList::SetCardInfo(SSharedPtr<SACard> Card)
 {
-    // Set card position on grid
-    Card->SetGridPosition(SGridPositionU32(GridPosition.first + (Position * 8), GridPosition.second));
-
     // Make card face-up
     Card->GetCardInfo_Mutable().IsFaceUp = true;
 }

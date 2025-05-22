@@ -14,6 +14,7 @@ class SAFoundationList;
  */
 class SGameBoardWorld : SWorld
 {
+public:
     /** Get Solitaire game rules */
     inline SSolitaireRules* GetGameRules() const { return GameRules.get(); }
 

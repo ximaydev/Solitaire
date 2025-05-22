@@ -17,8 +17,8 @@ void FCardInfo::SetCardColor()
     }
 }
 
-SACard::SACard(const SGridPositionU32& NewGridPosition, const FCardInfo& NewCardInfo, SSharedPtr<SACard> NewNextCard) 
-    : SAActor(NewGridPosition), CardInfo(NewCardInfo), NextCard(NewNextCard) {}
+SACard::SACard(const SGridPositionU32& NewGridPosition, const FCardInfo& NewCardInfo) 
+    : SAActor(NewGridPosition), CardInfo(NewCardInfo) {}
 
 void SACard::Write()
 {
@@ -138,6 +138,15 @@ SBool SACard::CanBePlacedOnTableau(const FCardInfo& Other) const
     return bIsRankCorrect && bIsColorOpposite;
 }
 
+void SACard::SetNextCard(const SGridPositionU32& NextCardGridPosition, SSharedPtr<SACard> NewNextCard)
+{
+    // Store a shared pointer to the next card in the sequence
+    NextCard = NewNextCard;
+
+    // Update the grid position of the new next card
+    NewNextCard->SetGridPosition(NextCardGridPosition);
+}
+
 void CardRankToString(ECardRank CardRank, SWString& OutString)
 {
     // Static lookup table of card rank strings
@@ -162,4 +171,35 @@ void CardSuitToString(ECardSuit CardSuit, SWString& OutString)
 
     // Fetch the string representation of the given card suit.
     OutString = CardSuitStrings[static_cast<SUInt8>(CardSuit)];
+}
+
+ECardRank StringToCardRank(const SWString& String)
+{
+    // Check if the input string represents a face card or Ace, and return the corresponding enum.
+    if      (String == TEXT("A")) return ECardRank::Ace;
+    else if (String == TEXT("J")) return ECardRank::Jack;
+    else if (String == TEXT("Q")) return ECardRank::Queen;
+    else if (String == TEXT("K")) return ECardRank::King;
+    else
+    {
+        // Try to convert the string to an integer value
+        SUInt32 Value = SStringLibrary::Convert<SUInt32>(String);
+
+        // If the value is in the valid range for numbered cards (2–10), cast it to ECardRank
+        if (Value >= 2 && Value <= 10)
+            return static_cast<ECardRank>(Value);
+    }
+
+    // If none of the cases matched, return a special value indicating an invalid or unrecognized rank.
+    return ECardRank::None;
+}
+
+ECardSuit StringToCardSuit(const SWString& String)
+{
+    // Check if the input string represents a valid card suit, and return the corresponding ECardSuit enum value.
+    if      (String == TEXT("C")) return ECardSuit::Clubs;
+    else if (String == TEXT("D")) return ECardSuit::Diamonds;
+    else if (String == TEXT("H")) return ECardSuit::Hearts;
+    else if (String == TEXT("S")) return ECardSuit::Spades;
+    else    return ECardSuit::None;
 }

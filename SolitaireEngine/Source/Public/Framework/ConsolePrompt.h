@@ -2,13 +2,13 @@
 #include "Globals.h"
 #include "Framework/Actor.h"
 
-class SOLITAIRE_ENGINE_API SConsolePrompt : public SAActor
+class SOLITAIRE_ENGINE_API SAConsolePrompt : public SAActor
 {
 public:
 	/** Constructor */
-	SConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow, const SConsoleLineCommitted& NewCallback);
-	SConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow);
-	SConsolePrompt(const SGridPositionU32& NewGridPosition);
+	SAConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow, const SConsoleLineCommitted& NewCallback);
+	SAConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow);
+	SAConsolePrompt(const SGridPositionU32& NewGridPosition);
 
 	/** Get Text To Show */
 	inline const SWString& GetTextToShow() const { return TextToShow; }

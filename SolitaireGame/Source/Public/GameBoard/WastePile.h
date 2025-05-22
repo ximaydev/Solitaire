@@ -17,6 +17,9 @@ public:
 	/** Use the top card in the pile (the first card in the vector). */
 	SSharedPtr<SACard> UseTopCard();
 
+	/** Get Cards */
+	inline const SVector<SSharedPtr<SACard>>& GetCards() const { return Cards; }
+
 	/** Renders the Waste sPile. */
 	void Write() override;
 

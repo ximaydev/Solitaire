@@ -61,8 +61,11 @@ using SStringView = std::string_view;
 using SWString = std::wstring;
 using SWStringView = std::wstring_view;
 
-using SStringStream = std::ostringstream;
-using SWStringStream = std::wostringstream;
+using SOStringStream = std::ostringstream;
+using SWOStringStream = std::wostringstream;
+
+using SIStringStream = std::istringstream;
+using SWIStringStream = std::wistringstream;
 
 // =============================================
 // Memory Management

@@ -65,8 +65,8 @@ void SAWastePile::MoveCardsToWastePile(SVector<SSharedPtr<SACard>>& StockPileCar
 		// Calculate the X position reversed: start from the rightmost position and move leftwards
 		SUInt32 PositionX = GridPosition.first + TotalShift - (Index * 4);
 
-		// Set the calculated grid position to the card
-		Card->SetGridPosition(SGridPositionU32(PositionX, GridPosition.second));
+		// Set the calculated grid position to the card and set NextCard to nullptr
+		Card->SetNextCard(SGridPositionU32(PositionX, GridPosition.second), nullptr);
 
 		// Flip the card face-up
 		FCardInfo& CardInfo = Card->GetCardInfo_Mutable();

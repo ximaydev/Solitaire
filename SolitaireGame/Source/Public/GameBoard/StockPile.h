@@ -21,6 +21,9 @@ public:
     /** Returns a shared pointer to the top card of the pile */
     SSharedPtr<SACard> GetTopCard() const;
 
+    /** Get Cards */
+    inline const SVector<SSharedPtr<SACard>>& GetCards() const { return Cards; }
+
     /** Removes the specified card from the Cards */
     void RemoveCardFromPile(SSharedPtr<SACard> CardToRemove);
 

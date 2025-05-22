@@ -11,6 +11,9 @@ public:
 	/** Constructor */
 	SATableau(const SGridPositionU32& NewGridPosition, SVector<SSharedPtr<SACard>>&& NewCards);
 
+    /** Get Cards */
+    inline const SArray<SVector<SSharedPtr<SACard>>, 7>& GetCards() const { return Cards; }
+
     /** Renders the tableau to the console */
     void Write() override;
 

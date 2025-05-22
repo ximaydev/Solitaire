@@ -2,15 +2,15 @@
 #include "Framework/ConsolePrompt.h"
 #include "Inputs/ConsoleInputHandler.h"
 
-SConsolePrompt::SConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow, const SConsoleLineCommitted& NewCallback)
+SAConsolePrompt::SAConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow, const SConsoleLineCommitted& NewCallback)
     : SAActor(NewGridPosition), TextColor(NewTextColor), TextToShow(NewTextToShow), ConsolePromptCallback(NewCallback) {}
 
-SConsolePrompt::SConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow)
-    : SConsolePrompt(NewGridPosition, NewTextColor, NewTextToShow, nullptr) {}
+SAConsolePrompt::SAConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow)
+    : SAConsolePrompt(NewGridPosition, NewTextColor, NewTextToShow, nullptr) {}
 
-SConsolePrompt::SConsolePrompt(const SGridPositionU32& NewGridPosition) : SConsolePrompt(NewGridPosition, FG_WHITE, TEXT("")) {}
+SAConsolePrompt::SAConsolePrompt(const SGridPositionU32& NewGridPosition) : SAConsolePrompt(NewGridPosition, FG_WHITE, TEXT("")) {}
 
-bool SConsolePrompt::Initialize()
+bool SAConsolePrompt::Initialize()
 {
     // Calculate the input start position: just after the prompt text
     const SGridPositionU32 ConsoleInputHandlerGridPosition = { GridPosition.first + TextToShow.size() + 1, GridPosition.second };
@@ -24,7 +24,7 @@ bool SConsolePrompt::Initialize()
     return true;
 }
 
-void SConsolePrompt::Write()
+void SAConsolePrompt::Write()
 {
     // Get the console renderer singleton
     SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
@@ -33,7 +33,7 @@ void SConsolePrompt::Write()
     ConsoleRenderer->Write(GridPosition, TextToShow, static_cast<SUInt32>(TextToShow.size()), true, TextColor | ConsoleRenderer->GetCurrentBackgroundColor());
 }
 
-void SConsolePrompt::ClearBuffer()
+void SAConsolePrompt::ClearBuffer()
 {
     // Clear the prompt text from the console buffer
     SConsoleRenderer::GetInstance()->ClearBufferAt(GridPosition, TextToShow.size() + 1);
