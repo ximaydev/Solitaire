@@ -1,8 +1,9 @@
 #pragma once
 #include "Framework/World.h"
+#include "GameBoard/SolitaireMoveManager.h"
 
 /** Forward Declarations */
-class SSolitaireRules;
+class SASolitaireRules;
 class SAStockPile;
 class SATableau;
 class SAFoundationList;
@@ -12,11 +13,11 @@ class SAFoundationList;
  * managing core components like rules, stock pile,
  * tableau (board), and foundation lists.
  */
-class SGameBoardWorld : SWorld
+class SGameBoardWorld : public SWorld
 {
 public:
     /** Get Solitaire game rules */
-    inline SSolitaireRules* GetGameRules() const { return GameRules.get(); }
+    inline SASolitaireRules* GetGameRules() const { return GameRules.get(); }
 
     /** Get the Stock Pile */
     inline SAStockPile* GetStockPile() const { return StockPile.get(); }
@@ -27,16 +28,22 @@ public:
     /** Get the Foundation Lists */
     inline SAFoundationList* GetFoundationList() const { return FoundationList.get(); }
 
+    /** Initializes the GameBoard world, preparing all necessary components. */
+    virtual SBool Initialize() override;
+
 protected:
     /** Unique pointer to game rules */
-    SUniquePtr<SSolitaireRules> GameRules;
+    SUniquePtr<SASolitaireRules> GameRules = nullptr;
 
     /** Unique pointer to Stock Pile */
-    SUniquePtr<SAStockPile> StockPile;
+    SUniquePtr<SAStockPile> StockPile = nullptr;
 
     /** Unique pointer to Tableau */
-    SUniquePtr<SATableau> Tableau;
+    SUniquePtr<SATableau> Tableau = nullptr;
 
     /** Unique pointer to Foundation Lists */
-    SUniquePtr<SAFoundationList> FoundationList;
+    SUniquePtr<SAFoundationList> FoundationList = nullptr;
+
+    /** Unique pointer to Move Manager */
+    SUniquePtr<SSolitaireMoveManager> MoveManager = nullptr;
 };

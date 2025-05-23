@@ -20,7 +20,7 @@ class SOLITAIRE_ENGINE_API SSolitaireEngine
 {
 public:
 	/** Initializes all subsystems of the Solitaire Engine. */
-	bool Initialize(const SSharedPtr<SWorld>& NewWorld);
+	bool Initialize(SSharedPtr<SWorld> NewWorld);
 	
 	/** Runs the main game loop. */
 	void Run();
@@ -30,6 +30,9 @@ public:
 
 	/** Set UseConsoleInputHandler */
 	inline void SetUseConsoleInputHandler(SBool NewUseConsoleInputHandler) { UseConsoleInputHandler = NewUseConsoleInputHandler; }
+
+	/** Set Current world */
+	void SetCurrentWorld(const SSharedPtr<SWorld> NewWorld);
 
 private:
 	/** Shuts down the engine and cleans up resources. */

@@ -20,7 +20,7 @@ public:
 
 protected:
 	/** Called once when the world is created */
-	virtual void Initialize() {};
+	virtual SBool Initialize() { return true; };
 
 	/** Called once when the world is destroyed */
 	virtual void Shutdown() {};

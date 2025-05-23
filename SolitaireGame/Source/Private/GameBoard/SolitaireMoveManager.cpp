@@ -7,25 +7,27 @@
 #include "GameBoard/Card.h"
 #include "World/GameBoardWorld.h"
 #include "Rules/SolitaireRules.h"
+#include "Framework/ConsolePrompt.h"
 
-SSolitaireMoveManager::SSolitaireMoveManager(const SGridPositionU32& NewGridPosition, const SWString& TextToShow) : SAActor(NewGridPosition)
+SSolitaireMoveManager::SSolitaireMoveManager(SWorld* NewWorld, const SGridPositionU32& NewGridPosition, const SWString& TextToShow) : SAActor(NewGridPosition)
 {
 	// Create Move Input Prompt
-	MoveInputPrompt = std::make_unique<SAConsolePrompt>(NewGridPosition, FG_DARK_GRAY | SConsoleRenderer::GetInstance()->GetCurrentBackgroundColor(), std::bind(OnEnterClicked));
+	MoveInputPrompt = NewWorld->SpawnActor<SUniquePtr<SAConsolePrompt>, SAConsolePrompt>(NewGridPosition, FG_DARK_GRAY | SConsoleRenderer::GetInstance()->GetCurrentBackgroundColor(), TextToShow, std::bind(&SSolitaireMoveManager::OnEnterClicked, this, std::placeholders::_1));
+	MoveInputPrompt->Initialize();
 }
 
-void SSolitaireMoveManager::OnEnterClicked(SWString& Line)
+void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 {
 	// Check if the user hasn't selected an option yet (first input step)
 	if (SelectedOption == TEXT(""))
 	{
 		// Store the selected option and move ownership of the input line
-		SelectedOption = std::move(Line);
+		SelectedOption = Line;
 	}
 	else if (MoveCommand == TEXT("")) // If option was already selected, check if we're waiting for the move command (second input step)
 	{
 		// Store the move command and move ownership of the input line
-		MoveCommand = std::move(Line);
+		MoveCommand = Line;
 
 		// Perform the actual card movement
 		ExecuteMoveCommand();
@@ -50,6 +52,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 	if (MoveCommand.size() < 4)
 	{
 		S_LOG_WARNING(LogGameBoard, TEXT("Move Command is invalid"));
+		ResetInputs();
 		return;
 	}
 
@@ -57,6 +60,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 	SWString Token1, Token2;
 	if (!ParseMoveCommand(MoveCommand, Token1, Token2))
 	{
+		ResetInputs();
 		return;
 	}
 
@@ -112,6 +116,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		if (!bFoundCard1 || !bFoundCard2)
 		{
 			S_LOG_WARNING(LogGameBoard, TEXT("Card1 or Card2 is nullptr"));
+			ResetInputs();
 			return;
 		}
 
@@ -167,6 +172,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		if (!bFoundCard1 || !bFoundCard2)
 		{
 			S_LOG_WARNING(LogGameBoard, TEXT("Card1 or Card2 is nullptr"));
+			ResetInputs();
 			return;
 		}
 
@@ -220,6 +226,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		if (!bFoundCard1 || !bFoundCard2)
 		{
 			S_LOG_WARNING(LogGameBoard, TEXT("Card1 or Card2 is nullptr"));
+			ResetInputs();
 			return;
 		}
 
@@ -271,6 +278,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		if (!bFoundCard1 || !bFoundCard2)
 		{
 			S_LOG_WARNING(LogGameBoard, TEXT("Card1 or Card2 is nullptr"));
+			ResetInputs();
 			return;
 		}
 
@@ -284,9 +292,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		S_LOG_WARNING(LogGameBoard, TEXT("Unknown command: %s"), SelectedOption.data());
 	}
 
-	// Reset the SelectedOption and MoveCommand
-	SelectedOption = TEXT("");
-	MoveCommand = TEXT("");
+	ResetInputs();
 }
 
 void SSolitaireMoveManager::ParseCard(const SWString& Command, ECardRank& OutCardRank, ECardSuit& OutCardSuit)
@@ -326,7 +332,7 @@ bool SSolitaireMoveManager::ParseMoveCommand(const SWString& MoveCommand, SWStri
 	while (StringStream >> Temp)
 	{
 		// Move the extracted token into the tokens vector to avoid unnecessary copying
-		Tokens.push_back(std::move(Temp));
+		Tokens.push_back(Temp);
 	}
 
 	// If we didn't get exactly 2 tokens, the command is invalid
@@ -342,4 +348,11 @@ bool SSolitaireMoveManager::ParseMoveCommand(const SWString& MoveCommand, SWStri
 	OutCardToken2 = std::move(Tokens[1]);
 
 	return true;
+}
+
+void SSolitaireMoveManager::ResetInputs()
+{
+	// Reset the SelectedOption and MoveCommand
+	SelectedOption = TEXT("");
+	MoveCommand = TEXT("");
 }

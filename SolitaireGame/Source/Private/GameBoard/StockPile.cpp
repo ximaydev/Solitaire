@@ -4,11 +4,9 @@
 #include "GameBoard/Card.h"
 #include "Framework/World.h"
 
-SAStockPile::SAStockPile(const SGridPositionU32& NewGridPosition) : SAActor(NewGridPosition) {}
-
-SAStockPile::SAStockPile(const SGridPositionU32& NewGridPosition, SVector<SSharedPtr<SACard>>& InitialCards) : SAActor(NewGridPosition)
+SAStockPile::SAStockPile(const SGridPositionU32& NewGridPosition, SVector<SSharedPtr<SACard>>&& InitialCards) : SAActor(NewGridPosition)
 {
-    FillInitialCards(InitialCards);
+    FillInitialCards(std::move(InitialCards));
 }
 
 bool SAStockPile::Initialize()
@@ -66,22 +64,22 @@ bool SAStockPile::InitializeWastePile()
     return true;
 }
 
-void SAStockPile::FillInitialCards(SVector<SSharedPtr<SACard>>& InitialCards)
+void SAStockPile::FillInitialCards(SVector<SSharedPtr<SACard>>&& InitialCards)
 {
     // Get the grid position of the stock pile (used as the position for all incoming cards)
     const SGridPositionU32& StockPileGridPosition = GetGridPosition();
 
     for (SSharedPtr<SACard>& Card : InitialCards)
     {
-        // Set to nullptr next card because we don't need it and assign the stock pile's grid position to the card
-        Card->SetNextCard(StockPileGridPosition, nullptr);
+        // assign the stock pile's grid position to the card
+        Card->SetGridPosition(StockPileGridPosition);
 
         // Ensure the card is face-down when placed in the stock pile
         Card->GetCardInfo_Mutable().IsFaceUp = false;
     }
 
     // Reserve enough space in the Cards vector to avoid reallocations
-    Cards.reserve(Cards.size() + InitialCards.size());
+    Cards.reserve(InitialCards.size());
 
     // Insert the initial cards at the beginning of the pile using move semantics (this ensures efficient transfer without unnecessary copies)
     Cards.insert(Cards.begin(), std::make_move_iterator(InitialCards.begin()), std::make_move_iterator(InitialCards.end()));

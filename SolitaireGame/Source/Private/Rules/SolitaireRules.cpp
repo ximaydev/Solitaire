@@ -4,32 +4,32 @@
 #include "Config/IniFile.h"
 #include "GameBoard/Card.h"
 
-SSolitaireRules::SSolitaireRules() 
+SASolitaireRules::SASolitaireRules() 
 	: SAActor(SGridPositionU32(0, 0)),
 	  CardsToRevealPerStockUse(SIniFileManager::GetInstance()->GetConfigFile(DefaultGameConfig)->GetValueFromKey<SUInt8>(TEXT("[GameRules]"), TEXT("CardsToRevealPerStockUse")))
 {}
 
-bool SSolitaireRules::CanMoveWastePileToFoundationList(const SSharedPtr<SACard> WastePileCard, const SSharedPtr<SACard> FoundationListCard)
+bool SASolitaireRules::CanMoveWastePileToFoundationList(const SSharedPtr<SACard> WastePileCard, const SSharedPtr<SACard> FoundationListCard)
 {
     return CanPlaceCardOnFoundation(WastePileCard, FoundationListCard);
 }
 
-bool SSolitaireRules::CanMoveWastePileToBoard(const SSharedPtr<SACard> WastePileCard, const SSharedPtr<SACard> BoardCard)
+bool SASolitaireRules::CanMoveWastePileToBoard(const SSharedPtr<SACard> WastePileCard, const SSharedPtr<SACard> BoardCard)
 {
     return CanPlaceCardOnTableau(WastePileCard, BoardCard);
 }
 
-bool SSolitaireRules::CanMoveBoardToBoard(const SSharedPtr<SACard> BoardCard1, const SSharedPtr<SACard> BoardCard2)
+bool SASolitaireRules::CanMoveBoardToBoard(const SSharedPtr<SACard> BoardCard1, const SSharedPtr<SACard> BoardCard2)
 {
     return CanPlaceCardOnTableau(BoardCard1, BoardCard2);
 }
 
-bool SSolitaireRules::CanMoveBoardToFoundationList(const SSharedPtr<SACard> BoardCard, const SSharedPtr<SACard> FoundationListCard)
+bool SASolitaireRules::CanMoveBoardToFoundationList(const SSharedPtr<SACard> BoardCard, const SSharedPtr<SACard> FoundationListCard)
 {
     return CanPlaceCardOnFoundation(BoardCard, FoundationListCard);
 }
 
-bool SSolitaireRules::CanPlaceCardOnTableau(const SSharedPtr<SACard>& CardToPlace, const SSharedPtr<SACard>& TargetCard)
+bool SASolitaireRules::CanPlaceCardOnTableau(const SSharedPtr<SACard>& CardToPlace, const SSharedPtr<SACard>& TargetCard)
 {
     // Check if the destination tableau pile is currently empty.
     if (!TargetCard)
@@ -71,7 +71,7 @@ bool SSolitaireRules::CanPlaceCardOnTableau(const SSharedPtr<SACard>& CardToPlac
     return bCanPlace;
 }
 
-bool SSolitaireRules::CanPlaceCardOnFoundation(const SSharedPtr<SACard>& CardToPlace, const SSharedPtr<SACard>& FoundationCard)
+bool SASolitaireRules::CanPlaceCardOnFoundation(const SSharedPtr<SACard>& CardToPlace, const SSharedPtr<SACard>& FoundationCard)
 {
     // Check if the foundation pile is currently empty.
     if (!FoundationCard)

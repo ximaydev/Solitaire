@@ -29,7 +29,7 @@ enum class ECardRank : SUInt8
  */
 enum class ECardSuit : SUInt8
 {
-    None,
+    None = 0,
     Clubs,
     Diamonds,
     Hearts,

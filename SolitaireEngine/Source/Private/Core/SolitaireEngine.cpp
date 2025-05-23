@@ -5,7 +5,7 @@
 #include "Inputs/ConsoleInputHandler.h"
 #include "Framework/World.h"
 
-bool SSolitaireEngine::Initialize(const SSharedPtr<SWorld>& NewWorld)
+bool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
 {
     // Log the begining of the engine initialization
     S_LOG(LogSolitaireEngine, TEXT("Initializing Solitaire Engine..."));
@@ -32,13 +32,22 @@ bool SSolitaireEngine::Initialize(const SSharedPtr<SWorld>& NewWorld)
     //Get Console Renderer
     ConsoleRenderer = SConsoleRenderer::GetInstance();
 
-    //Set current world
-    CurrentWorld = NewWorld;
+    // Set current world
+    SetCurrentWorld(NewWorld);
 
     // Log the engine initialization completed
     S_LOG(LogTemp, TEXT("Solitaire Engine initialization completed."));
     
     return true;
+}
+
+void SSolitaireEngine::SetCurrentWorld(SSharedPtr<SWorld> NewWorld)
+{
+    //Set current world
+    CurrentWorld = NewWorld;
+
+    // Initialize world
+    CurrentWorld->Initialize();
 }
 
 void SSolitaireEngine::ShutDown()
@@ -95,9 +104,29 @@ void SSolitaireEngine::Run()
     // Set the engine state to running
     IsRunning = true;
 
-    // Start the main game loop
+    // Outside loop
+    auto LastFrameTime = std::chrono::high_resolution_clock::now();
+    SDouble FPS = 0.0;
+
+    // Inside main game loop
     while (IsRunning)
     {
+        // Capture current time
+        auto Now = std::chrono::high_resolution_clock::now();
+
+        // Calculate frame time in seconds (nanosecond precision)
+        auto Delta = std::chrono::duration<SDouble>(Now - LastFrameTime).count();
+        LastFrameTime = Now;
+
+        // Avoid division by zero
+        if (Delta > 0.0)
+        {
+            FPS = 1.0 / Delta;
+        }
+
+        // Display FPS
+        SWString FPSText = L"FPS: " + std::to_wstring(static_cast<int>(FPS));
+        SConsoleRenderer::GetInstance()->Write(SGridPositionU32(120, 15), FPSText, 10, true, FG_BLUE | BG_GREEN);
         // Process Input
         ProcessInput();
 

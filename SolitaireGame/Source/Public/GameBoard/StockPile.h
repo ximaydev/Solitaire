@@ -9,8 +9,7 @@ class SAStockPile final : public SAActor
 {
 public:
 	/** Constructors */
-	SAStockPile(const SGridPositionU32& NewGridPosition);
-    SAStockPile(const SGridPositionU32& NewGridPosition, SVector<SSharedPtr<SACard>>& InitialCards);
+    SAStockPile(const SGridPositionU32& NewGridPosition, SVector<SSharedPtr<SACard>>&& InitialCards);
 
     /** Initialzie the Stock Pile */
     bool Initialize();
@@ -38,7 +37,7 @@ protected:
     bool InitializeWastePile();
 
     /** Fills the pile with the initial set of cards (called once at setup) */
-    void FillInitialCards(SVector<SSharedPtr<SACard>>& InitialCards);
+    void FillInitialCards(SVector<SSharedPtr<SACard>>&& InitialCards);
 
     /** Unique pointer to the Waste Pile where drawn cards are placed */
     SUniquePtr<SAWastePile> WastePile;

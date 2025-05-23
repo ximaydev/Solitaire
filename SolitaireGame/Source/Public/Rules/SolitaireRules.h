@@ -5,11 +5,11 @@
 /** Forward Declarations */
 class SACard;
 
-class SSolitaireRules : SAActor
+class SASolitaireRules : public SAActor
 {
 public:
     /** Constructor */
-    SSolitaireRules();
+    SASolitaireRules();
 
     /** Determines whether a card from the Waste Pile can legally be moved onto the given Foundation pile. */
     bool CanMoveWastePileToFoundationList(const SSharedPtr<SACard> WastePileCard, const SSharedPtr<SACard> FoundationListCard);

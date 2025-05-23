@@ -6,6 +6,7 @@ class SACard;
 class SAFoundationList final : public SAActor
 {
 public:
+    SAFoundationList() : SAActor(SGridPositionU32(0, 0)) {}
     /** Get Cards */
     inline const SArray<SVector<SSharedPtr<SACard>>, 4>& GetCards() const { return FoundationList; }
 

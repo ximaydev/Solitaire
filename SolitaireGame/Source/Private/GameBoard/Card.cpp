@@ -140,11 +140,15 @@ SBool SACard::CanBePlacedOnTableau(const FCardInfo& Other) const
 
 void SACard::SetNextCard(const SGridPositionU32& NextCardGridPosition, SSharedPtr<SACard> NewNextCard)
 {
-    // Store a shared pointer to the next card in the sequence
-    NextCard = NewNextCard;
+    // Check if the NewNextCard isn't nullptr
+    if (NewNextCard)
+    {
+        // Store a shared pointer to the next card in the sequence
+        NextCard = NewNextCard;
 
-    // Update the grid position of the new next card
-    NewNextCard->SetGridPosition(NextCardGridPosition);
+        // Update the grid position of the new next card
+        NewNextCard->SetGridPosition(NextCardGridPosition);
+    }
 }
 
 void CardRankToString(ECardRank CardRank, SWString& OutString)

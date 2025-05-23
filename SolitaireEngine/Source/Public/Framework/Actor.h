@@ -17,6 +17,9 @@ public:
 	template<typename WorldType = SWorld>
 	inline WorldType* GetWorld() const { return static_cast<WorldType*>(World); }
 
+	/** Set World */
+	inline void SetWorld(SWorld* NewWorld) { World = NewWorld; }
+
 protected:
 	/** Pointer to the current world */
 	SWorld* World = nullptr;

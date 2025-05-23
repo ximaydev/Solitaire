@@ -80,7 +80,11 @@ void SAFoundationList::Write()
     // Write card data for all top cards in foundation stacks
     for (const auto& Element : FoundationList)
     {
-        Element.back()->Write();
+        // Check if the vector is greater than zero
+        if (Element.size() > 0)
+        {
+            Element.back()->Write();
+        }
     }
 }
 

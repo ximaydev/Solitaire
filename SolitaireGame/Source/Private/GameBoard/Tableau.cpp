@@ -70,6 +70,11 @@ void SATableau::GenerateColumns(SVector<SSharedPtr<SACard>>&& NewCards)
             {
                 TempCards[IndexJ - 1]->SetNextCard(SGridPositionU32(GridPosition.first + (Index * 8), GridPosition.second + (IndexJ * 3)), TempCards[IndexJ]);
             }
+            else
+            {
+                // Set grid position, IndexJ is 0
+                TempCards[IndexJ]->SetGridPosition(SGridPositionU32(GridPosition.first + (Index * 8), GridPosition.second + (IndexJ * 3)));
+            }
         }
 
         // To be sure set to nullptr
