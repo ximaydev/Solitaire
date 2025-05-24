@@ -1,8 +1,19 @@
 #include "SolitaireGamePCH.h"
-#include "GameBoard/WastePile.h"
-#include "GameBoard/Card.h"
 
-SAWastePile::SAWastePile(const SGridPositionU32& NewGridPosition) : SAActor(NewGridPosition) {}
+SAWastePile::SAWastePile(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld) : SAActor(NewGridPosition, NewWorld) {}
+
+void SAWastePile::Write()
+{
+	// Check if there is at least one card in the pile
+	if (!Cards.empty())
+	{
+		// Iterate over all cards in the waste pile and write their state
+		for (const auto& Card : Cards)
+		{
+			Card->Write();
+		}
+	}
+}
 
 SSharedPtr<SACard> SAWastePile::UseTopCard()
 {
@@ -20,19 +31,6 @@ SSharedPtr<SACard> SAWastePile::UseTopCard()
 	return TopCard;
 }
 
-void SAWastePile::Write()
-{
-	// Check if there is at least one card in the pile
-	if (!Cards.empty())
-	{
-		// Iterate over all cards in the waste pile and write their state
-		for (const auto& Card : Cards)
-		{
-			Card->Write();
-		}
-	}
-}
-
 void SAWastePile::MoveCardsToWastePile(SVector<SSharedPtr<SACard>>& StockPileCards)
 {
 	// If the waste pile has cards, move them back to the stock pile
@@ -41,8 +39,8 @@ void SAWastePile::MoveCardsToWastePile(SVector<SSharedPtr<SACard>>& StockPileCar
 		StockPileCards.insert(StockPileCards.begin(), std::make_move_iterator(Cards.begin()), std::make_move_iterator(Cards.end()));
 	}
 
-	// TODO: Get the number of cards to draw from the stock pile based on game rules (usually 1 or 3)
-	SUInt32 Amount = 3;
+	// Get CardsToRevealPerStockUse
+	SUInt32 Amount = GetWorld<SGameBoardWorld>()->GetGameRules()->CardsToRevealPerStockUse;
 
 	// Move the last 'Amount' cards from the stock pile to the waste pile (to the front)
 	auto MoveStartIterator = StockPileCards.end() - Amount;
@@ -65,11 +63,10 @@ void SAWastePile::MoveCardsToWastePile(SVector<SSharedPtr<SACard>>& StockPileCar
 		// Calculate the X position reversed: start from the rightmost position and move leftwards
 		SUInt32 PositionX = GridPosition.first + TotalShift - (Index * 4);
 
-		// Set the calculated grid position to the card and set NextCard to nullptr
-		Card->SetNextCard(SGridPositionU32(PositionX, GridPosition.second), nullptr);
+		// Set the calculated grid position to the card
+		Card->SetGridPosition(SGridPositionU32(PositionX, GridPosition.second));
 
 		// Flip the card face-up
-		FCardInfo& CardInfo = Card->GetCardInfo_Mutable();
-		CardInfo.IsFaceUp = true;
+		Card->SetIsFaceUp(true);
 	}
 }	

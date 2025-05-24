@@ -2,15 +2,8 @@
 #include "Framework/ConsolePrompt.h"
 #include "Inputs/ConsoleInputHandler.h"
 
-SAConsolePrompt::SAConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow, const SConsoleLineCommitted& NewCallback)
-    : SAActor(NewGridPosition), TextColor(NewTextColor), TextToShow(NewTextToShow), ConsolePromptCallback(NewCallback) {}
-
-SAConsolePrompt::SAConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow)
-    : SAConsolePrompt(NewGridPosition, NewTextColor, NewTextToShow, nullptr) {}
-
-SAConsolePrompt::SAConsolePrompt(const SGridPositionU32& NewGridPosition) : SAConsolePrompt(NewGridPosition, FG_WHITE, TEXT("")) {}
-
-bool SAConsolePrompt::Initialize()
+SAConsolePrompt::SAConsolePrompt(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, WORD NewTextColor, const SWString& NewTextToShow, const SConsoleLineCommitted& NewCallback)
+    : SAActor(NewGridPosition, NewWorld), TextColor(NewTextColor), TextToShow(NewTextToShow), ConsolePromptCallback(NewCallback) 
 {
     // Calculate the input start position: just after the prompt text
     const SGridPositionU32 ConsoleInputHandlerGridPosition = { GridPosition.first + TextToShow.size() + 1, GridPosition.second };
@@ -20,9 +13,13 @@ bool SAConsolePrompt::Initialize()
 
     // Initialize the Console Input Handler with position and input length limit
     SConsoleInputHandler::GetInstance()->Initialize(ConsoleInputHandlerGridPosition, TextColor, std::move(ConsolePromptCallback), MaxInputLength);
-
-    return true;
 }
+
+SAConsolePrompt::SAConsolePrompt(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, WORD NewTextColor, const SWString& NewTextToShow)
+    : SAConsolePrompt(NewGridPosition, NewWorld, NewTextColor, NewTextToShow, nullptr) {}
+
+SAConsolePrompt::SAConsolePrompt(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld) 
+    : SAConsolePrompt(NewGridPosition, NewWorld, FG_WHITE, TEXT("")) {}
 
 void SAConsolePrompt::Write()
 {

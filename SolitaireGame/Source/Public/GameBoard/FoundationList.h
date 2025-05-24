@@ -1,20 +1,21 @@
 #pragma once
 #include "Framework/Actor.h"
 
+/** Forward Declarations */
 class SACard;
 
+/** Represents the Foundation piles in Solitaire game. */
 class SAFoundationList final : public SAActor
 {
 public:
-    SAFoundationList() : SAActor(SGridPositionU32(0, 0)) {}
+    /** Constructor */
+    SAFoundationList(SSharedPtr<SWorld> NewWorld);
+
     /** Get Cards */
     inline const SArray<SVector<SSharedPtr<SACard>>, 4>& GetCards() const { return FoundationList; }
 
     /** Add a new card to the Foundation Lists */
     bool AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SUInt8 Position);
-    
-    /** Set logical card data. */
-    void SetCardInfo(SSharedPtr<SACard> Card);
 
     /** Renders the Foundation List. */
     void Write() override;

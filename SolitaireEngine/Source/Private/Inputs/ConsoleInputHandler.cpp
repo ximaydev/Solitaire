@@ -15,6 +15,9 @@ bool SConsoleInputHandler::Initialize(const SGridPositionU32& NewGridPosition, c
     // Set the starting position
     SetGridPosition(NewGridPosition);
 
+    // Activate the Console Input Handler
+    GSolitaireEngine->SetUseConsoleInputHandler(true);
+
     // Set the maximum allowed input line size
     LineSize = NewLineSize;
 

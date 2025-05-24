@@ -1,6 +1,40 @@
 ﻿#pragma once
 #include "Framework/Actor.h"
 
+/** Macro to draw the face-up card with given rank and suit strings. */
+#define DRAW_CARD_FACE_UP(LinesArray, RankString, SuitString)           \
+    do {                                                   \
+        LinesArray[0] = TEXT("███████");                  \
+        LinesArray[1] = TEXT("█") + RankString + SWString(5 - RankString.size(), ' ') + TEXT("█"); \
+        LinesArray[2] = TEXT("█  ") + SuitString + TEXT("  █"); \
+        LinesArray[3] = TEXT("█") + SWString(5 - RankString.size(), ' ') + RankString + TEXT("█"); \
+        LinesArray[4] = TEXT("███████");                  \
+    } while (0)
+
+/** Macro to color the face-up card's rank and suit symbols according to card color. */
+#define COLOR_CARD_FACE_UP(ColorsArray, CardColor, CardSizeX, RankStringSize) \
+    do {                                                           \
+        ColorsArray.fill(FG_WHITE | BG_WHITE);                          \
+        ColorsArray[1 * CardSizeX + 1] = CardColor | BG_WHITE;          \
+        ColorsArray[2 * CardSizeX + 3] = CardColor | BG_WHITE;          \
+        ColorsArray[3 * CardSizeX + 5] = CardColor | BG_WHITE;          \
+        if (RankString.size() >= 2) {                              \
+            ColorsArray[1 * CardSizeX + 2] = CardColor | BG_WHITE;      \
+            ColorsArray[3 * CardSizeX + 4] = CardColor | BG_WHITE;      \
+        }                                                          \
+    } while (0)
+
+/** Macro to draw the face - down card with decorative pattern and default colors. */
+#define DRAW_CARD_FACE_DOWN(LinesArray, ColorsArray)          \
+    do {                              \
+        ColorsArray.fill(FG_LIGHT_BLUE | BG_WHITE); \
+        LinesArray[0] = TEXT("▒▓▒▓▒▓▒");     \
+        LinesArray[1] = TEXT("▓▒▓▒▓▒▓");     \
+        LinesArray[2] = TEXT("▒▓▓▓▓▓▒");     \
+        LinesArray[3] = TEXT("▓▒▓▒▓▒▓");     \
+        LinesArray[4] = TEXT("▒▓▒▓▒▓▒");     \
+    } while (0)
+
 /**
  * Enum representing the rank (value) of a playing card.
  * Includes numbers 2-10 and face cards (Jack, Queen, King) plus Ace.
@@ -36,17 +70,22 @@ enum class ECardSuit : SUInt8
     Spades
 };
 
-/** Converts a card rank enum value to its corresponding string representation. */
-void CardRankToString(ECardRank CardRank, SWString& OutString);
+/** Static utility class for converting between card rank and suit enumerations and their string representations. */
+class SCardConverter
+{
+public:
+    /** Converts a card rank enum value to its corresponding string representation. */
+    static void CardRankToString(ECardRank CardRank, SWString& OutString);
 
-/** Converts a card suit enum to its symbolic string representation (e.g., "♠", "♥"). */
-void CardSuitToString(ECardSuit CardSuit, SWString& OutString);
+    /** Converts a card suit enum to its symbolic string representation (e.g., "♠", "♥"). */
+    static void CardSuitToString(ECardSuit CardSuit, SWString& OutString);
 
-/** Converts a string representation of a card rank to the corresponding enum value. Accepts values like "A", "2", ..., "10", "J", "Q", "K". */
-ECardRank StringToCardRank(const SWString& String);
+    /** Converts a string representation of a card rank to the corresponding enum value. Accepts values like "A", "2", ..., "10", "J", "Q", "K". */
+    static ECardRank StringToCardRank(const SWString& String);
 
-/**  Converts a string representation of a card suit to the corresponding enum. Accepts characters like "H", "D", "C", "S" (case-insensitive). */
-ECardSuit StringToCardSuit(const SWString& String);
+    /**  Converts a string representation of a card suit to the corresponding enum. Accepts characters like "H", "D", "C", "S" (case-insensitive). */
+    static ECardSuit StringToCardSuit(const SWString& String);
+};
 
 /**
  * Structure representing a single playing card.
@@ -93,7 +132,7 @@ class SACard final : public SAActor
 {
 public:
 	/** Constructors */
-	SACard(const SGridPositionU32& NewGridPosition, const FCardInfo& NewCardInfo);
+	SACard(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, const FCardInfo& NewCardInfo);
 
     /** Renders the card at a specified grid position. */
     void Write() override;
@@ -128,10 +167,22 @@ public:
     /** Returns true if this card can start a foundation pile (only Aces). */
     inline SBool IsFoundationBaseCard() const { return CardInfo.GetCardRank() == ECardRank::Ace; }
 
-private:
+    /** Sets whether the card is face up or face down. Automatically updates the card visuals. */
+    void SetIsFaceUp(SBool bNewIsFaceUp);
+
+    /** Update the card visual */
+    void UpdateCardVisual();
+
+protected:
     /** Stores card information (rank, suit, face up). */
     FCardInfo CardInfo;
 
     /** Link to the next card in the tableau sequence. nullptr if this is the bottom card. */
     SSharedPtr<SACard> NextCard = nullptr;
+
+    /** Visual representation of the card using 5 lines of text */
+    SArray<SWString, 5> CardVisualLines;
+
+    /** Color buffer: stores text attributes for each character (7 columns × 5 rows) */
+    SArray<WORD, 7 * 5> CardColorBuffer;
 };

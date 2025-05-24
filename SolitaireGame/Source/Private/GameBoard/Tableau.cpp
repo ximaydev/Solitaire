@@ -1,9 +1,7 @@
 #include "SolitaireGamePCH.h"
-#include "GameBoard/Tableau.h"
-#include "GameBoard/Card.h"
 
-SATableau::SATableau(const SGridPositionU32& NewGridPosition, SVector<SSharedPtr<SACard>>&& NewCards)
-	: SAActor(NewGridPosition)
+SATableau::SATableau(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, SVector<SSharedPtr<SACard>>&& NewCards) \
+    : SAActor(NewGridPosition, NewWorld)
 {
     // Initialize the Tableau (Genereate Columns)
 	GenerateColumns(std::move(NewCards));
@@ -84,7 +82,7 @@ void SATableau::GenerateColumns(SVector<SSharedPtr<SACard>>&& NewCards)
         Cards[Index] = std::move(TempCards);
 
         // Flip the top card face-up (last in column)
-        Cards[Index].back()->GetCardInfo_Mutable().IsFaceUp = true;
+        Cards[Index].back()->SetIsFaceUp(true);
 
         // Remove the used cards from NewCards
         NewCards.erase(NewCards.begin(), NewCards.begin() + Index + 1);

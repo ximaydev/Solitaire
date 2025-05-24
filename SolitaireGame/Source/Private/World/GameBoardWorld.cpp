@@ -1,11 +1,4 @@
 #include "SolitaireGamePCH.h"
-#include "World/GameBoardWorld.h"
-#include "GameBoard/Card.h"
-#include "GameBoard/FoundationList.h"
-#include "GameBoard/StockPile.h"
-#include "GameBoard/WastePile.h"
-#include "GameBoard/Tableau.h"
-#include "Framework/ConsolePrompt.h"
 #include "Rules/SolitaireRules.h"
 #include <random>
 
@@ -22,8 +15,7 @@ SBool SGameBoardWorld::Initialize()
         for (SUInt8 IndexRank = 1; IndexRank <= 13; IndexRank++)
         {
             // Create a card with default grid position (0,0), face down
-            SSharedPtr<SACard> Card = std::make_shared<SACard>(SGridPositionU32(0, 0), FCardInfo(static_cast<ECardRank>(IndexRank), static_cast<ECardSuit>(IndexSuit), false));
-            Card->SetWorld(this);
+            SSharedPtr<SACard> Card = std::make_shared<SACard>(SGridPositionU32(0, 0), AsShared<SGameBoardWorld>(), FCardInfo(static_cast<ECardRank>(IndexRank), static_cast<ECardSuit>(IndexSuit), false));
             Cards.push_back(std::move(Card));
         }
     }
@@ -43,25 +35,22 @@ SBool SGameBoardWorld::Initialize()
     constexpr SUInt8 TableauCardNum = 28;
 
     // Initialize Tableau with the first 28 cards, move them into the tableau vector
-    Tableau = SpawnActor<SUniquePtr<SATableau>, SATableau>(SGridPositionU32(5, 20), SVector<SSharedPtr<SACard>>(std::make_move_iterator(Cards.begin()), std::make_move_iterator(Cards.begin() + TableauCardNum)));
+    Tableau = SpawnActor<SUniquePtr<SATableau>, SATableau>(SGridPositionU32(5, 20), AsShared<SGameBoardWorld>(), SVector<SSharedPtr<SACard>>(std::make_move_iterator(Cards.begin()), std::make_move_iterator(Cards.begin() + TableauCardNum)));
 
     // Remove the 28 cards moved to Tableau from the main card vector
     Cards.erase(Cards.begin(), Cards.begin() + TableauCardNum);
 
     // Create StockPile with the remaining cards
-    StockPile = SpawnActor<SUniquePtr<SAStockPile>, SAStockPile>(SGridPositionU32(70, 10), std::move(Cards));
-
-    // Initliaze the Stock Pile
-    StockPile->Initialize();
+    StockPile = SpawnActor<SUniquePtr<SAStockPile>, SAStockPile>(SGridPositionU32(70, 10), AsShared<SGameBoardWorld>(), std::move(Cards));
 
     // Create solitaire game rules
-    GameRules = SpawnActor<SUniquePtr<SASolitaireRules>, SASolitaireRules>();
+    GameRules = SpawnActor<SUniquePtr<SASolitaireRules>, SASolitaireRules>(AsShared<SGameBoardWorld>());
 
     // Create FoundationList
-    FoundationList = SpawnActor<SUniquePtr<SAFoundationList>, SAFoundationList>();
+    FoundationList = SpawnActor<SUniquePtr<SAFoundationList>, SAFoundationList>(AsShared<SGameBoardWorld>());
 
     // Create Move Manager
-    MoveManager = SpawnActor<SUniquePtr<SSolitaireMoveManager>, SSolitaireMoveManager>(this, SGridPositionU32(100, 45), TEXT("Type text :"));
+    MoveManager = SpawnActor<SUniquePtr<SSolitaireMoveManager>, SSolitaireMoveManager>(SGridPositionU32(100, 45), AsShared<SGameBoardWorld>(), TEXT("Type text :"));
 
     // Log
     S_LOG(LogGameBoard, TEXT("GameBoardWorld initialized."));

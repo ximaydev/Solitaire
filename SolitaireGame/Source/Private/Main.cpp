@@ -22,11 +22,7 @@ int main()
 {
     SSharedPtr<SWorld> World = std::make_shared<SGameBoardWorld>();
 
-    //SConsoleInputHandler::GetInstance()->SetGridPosition(SGridPositionU32(10, 10)); 
-    GSolitaireEngine->SetUseConsoleInputHandler(true);
-
     GSolitaireEngine->Initialize(World);
-    //ConsolePromt->Initialize();
     GSolitaireEngine->Run();
 
     return 0;

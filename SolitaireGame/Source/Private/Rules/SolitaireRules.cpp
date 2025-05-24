@@ -1,11 +1,9 @@
 #include "SolitaireGamePCH.h"
-#include "Rules/SolitaireRules.h"
 #include "Config/IniFileManager.h"
 #include "Config/IniFile.h"
-#include "GameBoard/Card.h"
 
-SASolitaireRules::SASolitaireRules() 
-	: SAActor(SGridPositionU32(0, 0)),
+SASolitaireRules::SASolitaireRules(SSharedPtr<SWorld> NewWorld)
+	: SAActor(SGridPositionU32(0, 0), NewWorld),
 	  CardsToRevealPerStockUse(SIniFileManager::GetInstance()->GetConfigFile(DefaultGameConfig)->GetValueFromKey<SUInt8>(TEXT("[GameRules]"), TEXT("CardsToRevealPerStockUse")))
 {}
 
@@ -29,7 +27,7 @@ bool SASolitaireRules::CanMoveBoardToFoundationList(const SSharedPtr<SACard> Boa
     return CanPlaceCardOnFoundation(BoardCard, FoundationListCard);
 }
 
-bool SASolitaireRules::CanPlaceCardOnTableau(const SSharedPtr<SACard>& CardToPlace, const SSharedPtr<SACard>& TargetCard)
+bool SASolitaireRules::CanPlaceCardOnTableau(const SSharedPtr<SACard> CardToPlace, const SSharedPtr<SACard> TargetCard)
 {
     // Check if the destination tableau pile is currently empty.
     if (!TargetCard)
@@ -71,7 +69,7 @@ bool SASolitaireRules::CanPlaceCardOnTableau(const SSharedPtr<SACard>& CardToPla
     return bCanPlace;
 }
 
-bool SASolitaireRules::CanPlaceCardOnFoundation(const SSharedPtr<SACard>& CardToPlace, const SSharedPtr<SACard>& FoundationCard)
+bool SASolitaireRules::CanPlaceCardOnFoundation(const SSharedPtr<SACard> CardToPlace, const SSharedPtr<SACard> FoundationCard)
 {
     // Check if the foundation pile is currently empty.
     if (!FoundationCard)

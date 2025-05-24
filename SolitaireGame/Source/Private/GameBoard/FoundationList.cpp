@@ -1,11 +1,14 @@
 #include "SolitaireGamePCH.h"
-#include "GameBoard/FoundationList.h"
-#include "GameBoard/Card.h"
+
+SAFoundationList::SAFoundationList(SSharedPtr<SWorld> NewWorld) : SAActor(SGridPositionU32(0, 0), NewWorld) {}
 
 bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SUInt8 Position)
 {
     // Get the foundation vector at the given position
     SVector<SSharedPtr<SACard>>& Cards = FoundationList.at(Position);
+
+    // Set Is Face Up to true
+    NewCard->SetIsFaceUp(true);
 
     // If the vector is empty, only an Ace can be placed
     if (Cards.empty())
@@ -14,9 +17,6 @@ bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SU
         {
             // Push card to Cards
             Cards.push_back(NewCard);
-
-            // Set Card Info
-            SetCardInfo(NewCard);
 
             // Set Next card for the penultimate card
             NewCard->SetNextCard(SGridPositionU32(GridPosition.first + (Position * 8), GridPosition.second), nullptr);
@@ -50,9 +50,6 @@ bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SU
             // Push card to Cards
             Cards.push_back(NewCard);
 
-            // Set Card Info
-            SetCardInfo(NewCard);
-
             S_LOG(LogGameBoard, TEXT("Successfully added card to the foundation."));
             return true;
         }
@@ -67,12 +64,6 @@ bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SU
     }
 
     return false;
-}
-
-void SAFoundationList::SetCardInfo(SSharedPtr<SACard> Card)
-{
-    // Make card face-up
-    Card->GetCardInfo_Mutable().IsFaceUp = true;
 }
 
 void SAFoundationList::Write()

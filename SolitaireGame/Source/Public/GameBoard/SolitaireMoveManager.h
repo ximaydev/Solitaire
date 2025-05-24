@@ -6,11 +6,12 @@ class SAConsolePrompt;
 enum class ECardRank : SUInt8;
 enum class ECardSuit : SUInt8;
 
+/** Manages and processes player input for moving cards within the Solitaire game. */
 class SSolitaireMoveManager final : public SAActor
 {
 public:
 	/** Constructor */
-	SSolitaireMoveManager(SWorld* NewWorld, const SGridPositionU32& NewGridPosition, const SWString& TextToShow);
+	SSolitaireMoveManager(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld>  NewWorld, const SWString& TextToShow);
 
 protected:
 	/** Called when the player presses Enter after typing a line of input. */

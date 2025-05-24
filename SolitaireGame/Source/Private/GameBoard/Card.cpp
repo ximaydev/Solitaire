@@ -1,6 +1,62 @@
 ﻿#include "SolitaireGamePCH.h"
-#include "GameBoard/Card.h"
 #include "Rendering/ConsoleRenderer.h"
+
+void SCardConverter::CardRankToString(ECardRank CardRank, SWString& OutString)
+{
+    // Static lookup table of card rank strings
+    constexpr SWStringView CardRankStrings[] =
+    {
+    TEXT(" "), TEXT("A"), TEXT("2"), TEXT("3"), TEXT("4"),
+    TEXT("5"), TEXT("6"), TEXT("7"), TEXT("8"), TEXT("9"),
+    TEXT("10"),TEXT("J"), TEXT("Q"), TEXT("K")
+    };
+
+    // Fetch the string representation of the given card rank.
+    OutString = CardRankStrings[static_cast<SUInt8>(CardRank)];
+}
+
+void SCardConverter::CardSuitToString(ECardSuit CardSuit, SWString& OutString)
+{
+    // Static lookup table of card suit strings
+    constexpr SWStringView CardSuitStrings[] =
+    {
+        TEXT(" "), TEXT("♣"), TEXT("♦"), TEXT("♥"), TEXT("♠")
+    };
+
+    // Fetch the string representation of the given card suit.
+    OutString = CardSuitStrings[static_cast<SUInt8>(CardSuit)];
+}
+
+ECardRank SCardConverter::StringToCardRank(const SWString& String)
+{
+    // Check if the input string represents a face card or Ace, and return the corresponding enum.
+    if (String == TEXT("A")) return ECardRank::Ace;
+    else if (String == TEXT("J")) return ECardRank::Jack;
+    else if (String == TEXT("Q")) return ECardRank::Queen;
+    else if (String == TEXT("K")) return ECardRank::King;
+    else
+    {
+        // Try to convert the string to an integer value
+        SUInt32 Value = SStringLibrary::Convert<SUInt32>(String);
+
+        // If the value is in the valid range for numbered cards (2–10), cast it to ECardRank
+        if (Value >= 2 && Value <= 10)
+            return static_cast<ECardRank>(Value);
+    }
+
+    // If none of the cases matched, return a special value indicating an invalid or unrecognized rank.
+    return ECardRank::None;
+}
+
+ECardSuit SCardConverter::StringToCardSuit(const SWString& String)
+{
+    // Check if the input string represents a valid card suit, and return the corresponding ECardSuit enum value.
+    if (String == TEXT("C")) return ECardSuit::Clubs;
+    else if (String == TEXT("D")) return ECardSuit::Diamonds;
+    else if (String == TEXT("H")) return ECardSuit::Hearts;
+    else if (String == TEXT("S")) return ECardSuit::Spades;
+    else    return ECardSuit::None;
+}
 
 void FCardInfo::SetCardColor()
 {
@@ -17,98 +73,26 @@ void FCardInfo::SetCardColor()
     }
 }
 
-SACard::SACard(const SGridPositionU32& NewGridPosition, const FCardInfo& NewCardInfo) 
-    : SAActor(NewGridPosition), CardInfo(NewCardInfo) {}
+SACard::SACard(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, const FCardInfo& NewCardInfo) 
+    : SAActor(NewGridPosition, NewWorld), CardInfo(NewCardInfo)
+{
+    // Create card
+    UpdateCardVisual();
+}
 
 void SACard::Write()
 {
     // Get the singleton instance of the console renderer
     SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
 
-    // Get string representation of card rank (e.g. "A" for Ace)
-    SWString RankString;
-    CardRankToString(CardInfo.GetCardRank(), RankString);
-
-    // Get string representation of card suit symbol (e.g. "♠" for Spades)
-    SWString SuitString;
-    CardSuitToString(CardInfo.GetCardSuit(), SuitString);
-
-    // Create array of colors for the card's ASCII representation
-    // Card size is 7 x 5
-    SArray<WORD, 7 * 5> Colors;
-    SArray<SWString, 5> StringLines;
-
-    // Card layout (5 lines):
-    // Line 0: ███████
-    // Line 1: █R    █
-    // Line 2: █  S  █
-    // Line 3: █    R█
-    // Line 4: ███████
-    //R = Rank
-    //S = Suit
-
-    // Check if the card is face up
-    if (CardInfo.IsFaceUp)
-    {
-        // Fill the entire card area with the default color
-        Colors.fill(FG_WHITE | BG_WHITE);
-
-        // Top border
-        StringLines[0] = TEXT("███████");
-
-        // Top rank 
-        StringLines[1] = TEXT("█") + RankString + SWString(5 - RankString.size(), ' ') + TEXT("█");
-
-        // Middle suit line, centered
-        StringLines[2] = TEXT("█  ") + SuitString + TEXT("  █");
-
-        // Bottom rank
-        StringLines[3] = TEXT("█") + SWString(5 - RankString.size(), ' ') + RankString + TEXT("█");
-
-        // Bottom border
-        StringLines[4] = TEXT("███████");
-
-        // Highlight the rank and suit characters with the card's assigned color
-        // Rank top-left (line 1, column 1)
-        WORD CardColor = CardInfo.GetColor();
-        Colors[1 * CardInfo.CardSizeX + 1] = CardColor | BG_WHITE;
-
-        // Suit symbol (line 2, column 3)
-        Colors[2 * CardInfo.CardSizeX + 3] = CardColor | BG_WHITE;
-
-        // Rank bottom-right (line 3, column 5)
-        Colors[3 * CardInfo.CardSizeX + 5] = CardColor | BG_WHITE;
-
-        // If rank has two characters (e.g., "10"), color the second character too
-        if (RankString.size() >= 2)
-        {
-            // Second character of top rank (line 1, column 2)
-            Colors[1 * CardInfo.CardSizeX + 2] = CardColor | BG_WHITE;
-
-            // Second character of bottom rank (line 3, column 4)
-            Colors[3 * CardInfo.CardSizeX + 4] = CardColor | BG_WHITE;
-        }
-    }
-    else
-    {
-        // Fill the entire card area with the default color 
-        Colors.fill(FG_LIGHT_BLUE | BG_WHITE);
-
-        // Face-down card decorative pattern
-        StringLines[0] = TEXT("▒▓▒▓▒▓▒");
-        StringLines[1] = TEXT("▓▒▓▒▓▒▓");
-        StringLines[2] = TEXT("▒▓▓▓▓▓▒");
-        StringLines[3] = TEXT("▓▒▓▒▓▒▓");
-        StringLines[4] = TEXT("▒▓▒▓▒▓▒");
-    }
-
-    for (SUInt32 Index = 0; Index < StringLines.size(); ++Index)
+    // Render card
+    for (SUInt32 Index = 0; Index < CardVisualLines.size(); ++Index)
     {
         // Create a span representing the 7 color values for the current line
-        SSpan<WORD, 7> TempColors(Colors.data() + Index * 7, 7);
+        SSpan<WORD, 7> TempColors(CardColorBuffer.data() + Index * 7, 7);
 
         // Write the current line of text at the appropriate vertical offset, using individual character colors from TempColors.
-        const SWString& Line = StringLines[Index];
+        const SWString& Line = CardVisualLines[Index];
         ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index), Line, static_cast<SUInt32>(Line.size()), TempColors, true);
     }
 }
@@ -151,59 +135,35 @@ void SACard::SetNextCard(const SGridPositionU32& NextCardGridPosition, SSharedPt
     }
 }
 
-void CardRankToString(ECardRank CardRank, SWString& OutString)
+void SACard::SetIsFaceUp(SBool NewIsFaceUp)
 {
-    // Static lookup table of card rank strings
-    constexpr SWStringView CardRankStrings[] =
-    {
-    TEXT(" "), TEXT("A"), TEXT("2"), TEXT("3"), TEXT("4"), 
-    TEXT("5"), TEXT("6"), TEXT("7"), TEXT("8"), TEXT("9"), 
-    TEXT("10"),TEXT("J"), TEXT("Q"), TEXT("K")
-    };
+    // Set Is Face Up
+    CardInfo.IsFaceUp = NewIsFaceUp;
 
-    // Fetch the string representation of the given card rank.
-    OutString = CardRankStrings[static_cast<SUInt8>(CardRank)];
+    // Refresh card 
+    UpdateCardVisual();
 }
 
-void CardSuitToString(ECardSuit CardSuit, SWString& OutString)
+void SACard::UpdateCardVisual()
 {
-    // Static lookup table of card suit strings
-    constexpr SWStringView CardSuitStrings[] =
+    // Get string representation of card rank
+    SWString RankString;
+    SCardConverter::CardRankToString(CardInfo.GetCardRank(), RankString);
+
+    // Get string representation of card suit symbol
+    SWString SuitString;
+    SCardConverter::CardSuitToString(CardInfo.GetCardSuit(), SuitString);
+
+    // Check if the card is face up
+    if (CardInfo.IsFaceUp)
     {
-        TEXT(" "), TEXT("♣"), TEXT("♦"), TEXT("♥"), TEXT("♠")
-    };
-
-    // Fetch the string representation of the given card suit.
-    OutString = CardSuitStrings[static_cast<SUInt8>(CardSuit)];
-}
-
-ECardRank StringToCardRank(const SWString& String)
-{
-    // Check if the input string represents a face card or Ace, and return the corresponding enum.
-    if      (String == TEXT("A")) return ECardRank::Ace;
-    else if (String == TEXT("J")) return ECardRank::Jack;
-    else if (String == TEXT("Q")) return ECardRank::Queen;
-    else if (String == TEXT("K")) return ECardRank::King;
+        // Create card
+        DRAW_CARD_FACE_UP(CardVisualLines, RankString, SuitString);
+        COLOR_CARD_FACE_UP(CardColorBuffer, CardInfo.GetColor(), CardInfo.CardSizeX, RankString.size());
+    }
     else
     {
-        // Try to convert the string to an integer value
-        SUInt32 Value = SStringLibrary::Convert<SUInt32>(String);
-
-        // If the value is in the valid range for numbered cards (2–10), cast it to ECardRank
-        if (Value >= 2 && Value <= 10)
-            return static_cast<ECardRank>(Value);
+        // Create card
+        DRAW_CARD_FACE_DOWN(CardVisualLines, CardColorBuffer);
     }
-
-    // If none of the cases matched, return a special value indicating an invalid or unrecognized rank.
-    return ECardRank::None;
-}
-
-ECardSuit StringToCardSuit(const SWString& String)
-{
-    // Check if the input string represents a valid card suit, and return the corresponding ECardSuit enum value.
-    if      (String == TEXT("C")) return ECardSuit::Clubs;
-    else if (String == TEXT("D")) return ECardSuit::Diamonds;
-    else if (String == TEXT("H")) return ECardSuit::Hearts;
-    else if (String == TEXT("S")) return ECardSuit::Spades;
-    else    return ECardSuit::None;
 }

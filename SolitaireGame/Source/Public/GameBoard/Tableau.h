@@ -4,12 +4,12 @@
 /** Forward Declarations */
 class SACard;
 
-/** Represents the tableau area in a card game, managing multiple columns of cards. */
+/** Represents the tableau area in Solitaire game, managing multiple columns of cards. */
 class SATableau final : public SAActor
 {
 public:
 	/** Constructor */
-	SATableau(const SGridPositionU32& NewGridPosition, SVector<SSharedPtr<SACard>>&& NewCards);
+	SATableau(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, SVector<SSharedPtr<SACard>>&& NewCards);
 
     /** Get Cards */
     inline const SArray<SVector<SSharedPtr<SACard>>, 7>& GetCards() const { return Cards; }

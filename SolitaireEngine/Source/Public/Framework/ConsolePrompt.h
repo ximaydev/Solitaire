@@ -6,9 +6,9 @@ class SOLITAIRE_ENGINE_API SAConsolePrompt : public SAActor
 {
 public:
 	/** Constructor */
-	SAConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow, const SConsoleLineCommitted& NewCallback);
-	SAConsolePrompt(const SGridPositionU32& NewGridPosition, WORD NewTextColor, const SWString& NewTextToShow);
-	SAConsolePrompt(const SGridPositionU32& NewGridPosition);
+	SAConsolePrompt(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, WORD NewTextColor, const SWString& NewTextToShow, const SConsoleLineCommitted& NewCallback);
+	SAConsolePrompt(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, WORD NewTextColor, const SWString& NewTextToShow);
+	SAConsolePrompt(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld);
 
 	/** Get Text To Show */
 	inline const SWString& GetTextToShow() const { return TextToShow; }
@@ -18,9 +18,6 @@ public:
 
 	/** Set Text Color */
 	inline void SetTextColor(const WORD NewTextColor) { TextColor = NewTextColor; }
-
-	/** Initializes the console prompt */
-	bool Initialize();
 
 	/** Renders the prompt text to the buffer */
 	virtual void Write() override;

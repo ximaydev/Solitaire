@@ -1,4 +1,12 @@
 #pragma once
-#include <Windows.h>
 #include "SolitaireEnginePCH.h"
 #include "Main.h"
+#include "World/GameBoardWorld.h"
+#include "GameBoard/Card.h"
+#include "GameBoard/FoundationList.h"
+#include "GameBoard/StockPile.h"
+#include "GameBoard/WastePile.h"
+#include "GameBoard/Tableau.h"
+#include "GameBoard/SolitaireMoveManager.h"
+#include "Rules/SolitaireRules.h"
+#include <Windows.h>

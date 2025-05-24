@@ -2,11 +2,14 @@
 #include "Framework/World.h"
 #include "Framework/Actor.h"
 
-void SWorld::AddActor(SAActor* Actor)
+void SWorld::RegisterActor(SSharedPtr<SAActor> Actor)
 {
-	/** Set this world context to the actor */
-	Actor->World = this;
+	/** Add the actor to the world's actor list */
+	Actors.push_back(Actor.get());
+}
 
+void SWorld::RegisterActor(SAActor* Actor)
+{
 	/** Add the actor to the world's actor list */
 	Actors.push_back(Actor);
 }

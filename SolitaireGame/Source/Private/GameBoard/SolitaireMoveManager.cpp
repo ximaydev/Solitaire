@@ -1,19 +1,10 @@
 #include "SolitaireGamePCH.h"
-#include "GameBoard/SolitaireMoveManager.h"
-#include "GameBoard/FoundationList.h"
-#include "GameBoard/StockPile.h"
-#include "GameBoard/Tableau.h"
-#include "GameBoard/WastePile.h"
-#include "GameBoard/Card.h"
-#include "World/GameBoardWorld.h"
-#include "Rules/SolitaireRules.h"
-#include "Framework/ConsolePrompt.h"
 
-SSolitaireMoveManager::SSolitaireMoveManager(SWorld* NewWorld, const SGridPositionU32& NewGridPosition, const SWString& TextToShow) : SAActor(NewGridPosition)
+SSolitaireMoveManager::SSolitaireMoveManager(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, const SWString& TextToShow) 
+	: SAActor(NewGridPosition, NewWorld)
 {
 	// Create Move Input Prompt
-	MoveInputPrompt = NewWorld->SpawnActor<SUniquePtr<SAConsolePrompt>, SAConsolePrompt>(NewGridPosition, FG_DARK_GRAY | SConsoleRenderer::GetInstance()->GetCurrentBackgroundColor(), TextToShow, std::bind(&SSolitaireMoveManager::OnEnterClicked, this, std::placeholders::_1));
-	MoveInputPrompt->Initialize();
+	MoveInputPrompt = NewWorld->SpawnActor<SUniquePtr<SAConsolePrompt>, SAConsolePrompt>(NewGridPosition, NewWorld, FG_DARK_GRAY | SConsoleRenderer::GetInstance()->GetCurrentBackgroundColor(), TextToShow, std::bind(&SSolitaireMoveManager::OnEnterClicked, this, std::placeholders::_1));
 }
 
 void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
@@ -46,7 +37,7 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 void SSolitaireMoveManager::ExecuteMoveCommand()
 {
 	// Get world
-	SGameBoardWorld* GameBoardWorld = GetWorld<SGameBoardWorld>();
+	SSharedPtr<SGameBoardWorld> GameBoardWorld = GetWorld<SGameBoardWorld>();
 
 	// Ensure the move command contains at least two cards (each 2 characters long)
 	if (MoveCommand.size() < 4)
@@ -311,10 +302,10 @@ void SSolitaireMoveManager::ParseCard(const SWString& Command, ECardRank& OutCar
 	SWString RankString = Command.substr(1);
 
 	// Convert the suit substring to the ECardSuit enum
-	OutCardSuit = StringToCardSuit(SuitString);
+	OutCardSuit = SCardConverter::StringToCardSuit(SuitString);
 
 	// Convert the rank substring to the ECardRank enum
-	OutCardRank = StringToCardRank(RankString);
+	OutCardRank = SCardConverter::StringToCardRank(RankString);
 }
 
 bool SSolitaireMoveManager::ParseMoveCommand(const SWString& MoveCommand, SWString& OutCardToken1, SWString& OutCardToken2)

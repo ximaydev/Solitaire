@@ -11,16 +11,16 @@ class SOLITAIRE_ENGINE_API SAActor : public SIConsoleRenderable
 	friend SWorld;
 public:
 	/** Constructors */
-	SAActor(const SGridPositionU32& NewGridPosition) : SIConsoleRenderable(NewGridPosition), World(nullptr) {}
+	SAActor(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld) : SIConsoleRenderable(NewGridPosition), World(NewWorld) {}
 
 	/** Get World */
 	template<typename WorldType = SWorld>
-	inline WorldType* GetWorld() const { return static_cast<WorldType*>(World); }
+	inline SSharedPtr<WorldType> GetWorld() const { return std::static_pointer_cast<WorldType>(World); }
 
 	/** Set World */
-	inline void SetWorld(SWorld* NewWorld) { World = NewWorld; }
+	inline void SetWorld(SSharedPtr<SWorld> NewWorld) { World = NewWorld; }
 
 protected:
 	/** Pointer to the current world */
-	SWorld* World = nullptr;
+	SSharedPtr<SWorld> World = nullptr;
 };

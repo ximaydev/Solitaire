@@ -12,3 +12,4 @@
 #include "Logging/LoggerMacros.h"
 #include "Logging/LogCategories.h"
 #include "Core/SolitaireEngine.h"
+#include "Framework/ConsolePrompt.h"

@@ -5,23 +5,21 @@
 class SAWastePile;
 class SACard;
 
+/** Represents the Stock Pile in the Solitaire game, managing the deck of cards from which the player draws during gameplay. */
 class SAStockPile final : public SAActor
 {
 public:
 	/** Constructors */
-    SAStockPile(const SGridPositionU32& NewGridPosition, SVector<SSharedPtr<SACard>>&& InitialCards);
-
-    /** Initialzie the Stock Pile */
-    bool Initialize();
+    SAStockPile(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, SVector<SSharedPtr<SACard>>&& InitialCards);
 
 	/** Get Waste Pile */
 	inline SAWastePile* GetWastePile() const { return WastePile.get(); }
 
-    /** Returns a shared pointer to the top card of the pile */
-    SSharedPtr<SACard> GetTopCard() const;
-
     /** Get Cards */
     inline const SVector<SSharedPtr<SACard>>& GetCards() const { return Cards; }
+
+    /** Returns a shared pointer to the top card of the pile */
+    SSharedPtr<SACard> GetTopCard() const;
 
     /** Removes the specified card from the Cards */
     void RemoveCardFromPile(SSharedPtr<SACard> CardToRemove);
@@ -34,7 +32,7 @@ public:
 
 protected:
     /** Initializes the Waste Pile at a position offset from the Stock Pile. */
-    bool InitializeWastePile();
+    void InitializeWastePile();
 
     /** Fills the pile with the initial set of cards (called once at setup) */
     void FillInitialCards(SVector<SSharedPtr<SACard>>&& InitialCards);

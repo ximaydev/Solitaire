@@ -1,17 +1,13 @@
 #include "SolitaireGamePCH.h"
-#include "GameBoard/StockPile.h"
-#include "GameBoard/WastePile.h"
-#include "GameBoard/Card.h"
-#include "Framework/World.h"
 
-SAStockPile::SAStockPile(const SGridPositionU32& NewGridPosition, SVector<SSharedPtr<SACard>>&& InitialCards) : SAActor(NewGridPosition)
+SAStockPile::SAStockPile(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, SVector<SSharedPtr<SACard>>&& InitialCards) 
+    : SAActor(NewGridPosition, NewWorld)
 {
+    // Initialize the Waste Pile
+    InitializeWastePile();
+
+    // Fill the Stock Pile with cards
     FillInitialCards(std::move(InitialCards));
-}
-
-bool SAStockPile::Initialize()
-{
-    return InitializeWastePile();
 }
 
 SSharedPtr<SACard> SAStockPile::GetTopCard() const
@@ -49,19 +45,16 @@ void SAStockPile::UseStockPile()
     WastePile->MoveCardsToWastePile(Cards);
 }
 
-bool SAStockPile::InitializeWastePile()
+void SAStockPile::InitializeWastePile()
 {
     // Check if the WastePile isn't nullptr
     if (WastePile)
     {
-        S_LOG_WARNING(LogCard, TEXT("WastePile is already initialized."));
-        return false;
+        S_LOG_WARNING(LogCard, TEXT("WastePile is already initialized."))
     }
 
     // Create a new WastePile positioned 10 units to the right of the StockPile
-    const SGridPositionU32& StockPileGridPosition = GetGridPosition();
-    WastePile = GetWorld()->SpawnActor<SUniquePtr<SAWastePile>, SAWastePile>(SGridPositionU32(StockPileGridPosition.first + 10, StockPileGridPosition.second));
-    return true;
+    WastePile = GetWorld()->SpawnActor<SUniquePtr<SAWastePile>, SAWastePile>(SGridPositionU32(GetGridPosition().first + 10, GetGridPosition().second), GetWorld());
 }
 
 void SAStockPile::FillInitialCards(SVector<SSharedPtr<SACard>>&& InitialCards)
@@ -75,7 +68,7 @@ void SAStockPile::FillInitialCards(SVector<SSharedPtr<SACard>>&& InitialCards)
         Card->SetGridPosition(StockPileGridPosition);
 
         // Ensure the card is face-down when placed in the stock pile
-        Card->GetCardInfo_Mutable().IsFaceUp = false;
+        Card->SetIsFaceUp(false);
     }
 
     // Reserve enough space in the Cards vector to avoid reallocations
