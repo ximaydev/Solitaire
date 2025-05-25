@@ -4,6 +4,7 @@
 #include "Audio/WAVLoader.h"
 #include "Asset/AssetRegistry.h"
 #include "Config/IniFile.h"
+#include "Config/IniFileManager.h"
 
 SAudioEngine::SAudioEngine()
 {
@@ -36,6 +37,10 @@ bool SAudioEngine::Initialize()
 
 	// Create the master voice wrapper.
 	Master = std::make_unique<SAudioMaster>(AudioEngine);
+
+	// Set DefaultAudioConfigFile
+	DefaultAudioConfigFile = SIniFileManager::GetInstance()->GetConfigFile(DefaultAudioConfig);
+
 	return true;
 }
 
@@ -123,7 +128,7 @@ SFloat SAudioEngine::GetVolume(const SWString& GroupName)
 }
 
 // Function to play a sound given a file path
-void SAudioEngine::PlaySound(const SWString& FilePath, const SWString& GroupName)
+void SAudioEngine::PlaySound(const SWString& FilePath, const SWString& SoundName, const SWString& GroupName)
 {
 	// Load WAV file from the provided file path into WAVFile 
 	SWavFile* WAVFile = SAssetRegistry::GetInstance()->GetAsset<SWavFile>(FilePath);
@@ -141,13 +146,12 @@ void SAudioEngine::PlaySound(const SWString& FilePath, const SWString& GroupName
 	Buffer.AudioBytes = static_cast<SUInt32>(WAVFile->Data.size());  // Set the number of audio bytes
 	Buffer.pAudioData = WAVFile->Data.data();						 // Pointer to the audio data in the WAV file
 
-	//Play Sound
-	PlaySound(WAVFile, Buffer, GroupName);
+	PlaySound(WAVFile, SoundName, Buffer, GroupName);
 }
 
-void SAudioEngine::PlaySound(const SWavFile* WAVFile, XAUDIO2_BUFFER& Buffer, const SWString& GroupName)
+void SAudioEngine::PlaySound(const SWavFile* WAVFile, const SWString& SoundName, XAUDIO2_BUFFER& Buffer, const SWString& GroupName)
 {
-	// 2. Build WAVEFORMATEX structure, which defines the audio format
+	// Build WAVEFORMATEX structure, which defines the audio format
 	WAVEFORMATEX Format = {};
 	Format.wFormatTag = WAVFile->AudioFormat;		// Audio format (e.g., PCM)
 	Format.nChannels = WAVFile->NumChannels;		// Number of channels (stereo or mono)
@@ -185,11 +189,45 @@ void SAudioEngine::PlaySound(const SWavFile* WAVFile, XAUDIO2_BUFFER& Buffer, co
 		return;
 	}
 
+	// Keep reference to this voice
+	ActiveVoices[SoundName] = SourceVoice;
+
 	// Log the sound start
 	S_LOG(LogAudio, TEXT("Playing sound for group '%s'."), GroupName.c_str());
 
 	// Start playback of the sound
 	SourceVoice->Start();
+}
+
+void SAudioEngine::StopSound(const SWString& SoundName)
+{
+	// Try to find the sound in the map of active voices
+	auto Iterator = ActiveVoices.find(SoundName);
+	if (Iterator != ActiveVoices.end())
+	{
+		// Destroy the source voice
+		Iterator->second->DestroyVoice();
+
+		// Remove the entry from the ActiveVoices map
+		ActiveVoices.erase(Iterator);
+	}
+	else
+	{
+		S_LOG_ERROR(LogAudio, TEXT("Couldn't find the sound in list: %s"), SoundName.c_str());
+	}
+}
+
+void SAudioEngine::StopAllSounds()
+{
+	// Iterate through all active voices and destroy each one
+	for (auto& Element : ActiveVoices)
+	{
+		// Stop and destroy the audio voice
+		Element.second->DestroyVoice();
+	}
+
+	// Clear the map to remove all references to the stopped voices
+	ActiveVoices.clear();
 }
 
 IXAudio2SubmixVoice* SAudioEngine::GetOrCreateSubmix(const SWString& GroupName, SUInt32 Channels, SUInt32 SampleRate)

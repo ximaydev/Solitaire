@@ -32,6 +32,9 @@ bool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
     //Get Console Renderer
     ConsoleRenderer = SConsoleRenderer::GetInstance();
 
+    // Create Audio Engine
+    AudioEngine = std::make_unique<SAudioEngine>();
+
     // Set current world
     SetCurrentWorld(NewWorld);
 

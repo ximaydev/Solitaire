@@ -28,6 +28,24 @@ public:
 	/** Get UseConsoleInputHandler */
 	inline SBool GetUseConsoleInputHandler() const { return UseConsoleInputHandler; }
 
+	/** Get GetInputSystem */
+	inline SInputSystem* GetInputSystem() const { return InputSystem; }
+
+	/** Get GetConsoleInputHandler */
+	inline SConsoleInputHandler* GetConsoleInputHandler() const { return ConsoleInputHandler; }
+
+	/** Get GetConsoleRenderer */
+	inline SConsoleRenderer* GetConsoleRenderer() const { return ConsoleRenderer; }
+
+	/** Get IsEngineRunning */
+	inline SBool IsEngineRunning() const { return IsRunning; }
+
+	/** Get Current World */
+	inline SSharedPtr<SWorld> GetCurrentWorld() const { return CurrentWorld; }
+
+	/** Get Audio Engine */
+	inline SAudioEngine* GetAudioEngine() const { return AudioEngine.get(); }
+
 	/** Set UseConsoleInputHandler */
 	inline void SetUseConsoleInputHandler(SBool NewUseConsoleInputHandler) { UseConsoleInputHandler = NewUseConsoleInputHandler; }
 
@@ -45,19 +63,22 @@ private:
 	void ProcessInput();
 
 	/** Pointer to the input system responsible for handling key input. */
-	SInputSystem* InputSystem = {};
+	SInputSystem* InputSystem = nullptr;
 
 	/** Pointer to the input system responsible for handling inputs in the console. */
-	SConsoleInputHandler* ConsoleInputHandler;
+	SConsoleInputHandler* ConsoleInputHandler = nullptr;
 
 	/** Pointer to the console renderer responsible for rendering console. */
-	SConsoleRenderer* ConsoleRenderer = {};
+	SConsoleRenderer* ConsoleRenderer = nullptr;
+
+	/** Pointer to the audio engine resposible for audio */
+	SUniquePtr<SAudioEngine> AudioEngine = nullptr;
 
 	/** Indicates whether the engine is currently running. */
-	SBool IsRunning = {};
+	SBool IsRunning = false;
 
 	/** The world currently being rendered by the engine */
-	SSharedPtr<SWorld> CurrentWorld;
+	SSharedPtr<SWorld> CurrentWorld = nullptr;
 
 	/** Flag to determine whether to use this low-level Console Input Handle or the higher-level Input System. */
 	SBool UseConsoleInputHandler = false;
