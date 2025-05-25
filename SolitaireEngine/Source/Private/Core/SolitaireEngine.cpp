@@ -29,6 +29,18 @@ bool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
     // Get the Console Input Handler
     ConsoleInputHandler = SConsoleInputHandler::GetInstance();
 
+    // Bind unique action to the Input System which allows us to come back to typing mode
+    StartTypingCallback = [this]() 
+        {
+            // Switch to typing mode — console now handles key input
+            SetUseConsoleInputHandler(true);
+
+            // Clear any leftover events in the console buffer
+            FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+        };
+
+    InputSystem->AddCallback(EKeyAction::StartTyping, StartTypingCallback);
+
     //Get Console Renderer
     ConsoleRenderer = SConsoleRenderer::GetInstance();
 

@@ -20,6 +20,7 @@ SBool SInputSystem::Initialize()
     Bindings[1] = { EKeyAction::MoveDown, VK_DOWN };
     Bindings[2] = { EKeyAction::Select, VK_RETURN };
     Bindings[3] = { EKeyAction::Back, VK_ESCAPE };
+    Bindings[4] = { EKeyAction::StartTyping, VK_HOME };
 
     // Log successful initialization
     S_LOG(LogInputSystem, TEXT("Input System initialized."));

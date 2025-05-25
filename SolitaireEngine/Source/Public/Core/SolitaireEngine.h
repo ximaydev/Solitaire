@@ -62,6 +62,9 @@ private:
 	/** Processes input events. */
 	void ProcessInput();
 
+	/** Holds the persistent callback for the StartTyping key action. */
+	SCallback StartTypingCallback;
+
 	/** Pointer to the input system responsible for handling key input. */
 	SInputSystem* InputSystem = nullptr;
 

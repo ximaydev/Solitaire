@@ -78,7 +78,6 @@ void SConsoleInputHandler::UpdateLine()
 
                 return;
             }
-            case VK_ESCAPE:
             case VK_BACK:
             {
                 // Escape key pressed — remove last character from current input line if any
@@ -87,6 +86,12 @@ void SConsoleInputHandler::UpdateLine()
                     CurrentLine.pop_back();
                 }
 
+                break;
+            }
+            case VK_ESCAPE:
+            {
+                // Disable usage of the Console Input Handler
+                GSolitaireEngine->SetUseConsoleInputHandler(false);
                 break;
             }
             default:

@@ -11,6 +11,6 @@ enum class SOLITAIRE_ENGINE_API EKeyAction : SUInt8
 	MoveDown,
 	Select,
 	Back,
-	Pause,
+	StartTyping,
 	Max
 };
