@@ -72,3 +72,16 @@ SBool SGameBoardWorld::Initialize()
     // Initialization succeeded
     return true;
 }
+
+void SGameBoardWorld::Write()
+{
+    // Call parent function
+    SWorld::Write();
+
+    // Get Console Renderer
+    SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
+
+    // Format and render the move count string
+    SWString MovesString = std::format(TEXT("Moves: {}"), MoveCount);
+    ConsoleRenderer->Write(SGridPositionU32(115, 45), MovesString, MovesString.size(), true, FG_BLUE | ConsoleRenderer->GetCurrentBackgroundColor());
+}

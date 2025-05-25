@@ -19,6 +19,9 @@ public:
     /** Initializes the GameBoard world, preparing all necessary components. */
     virtual SBool Initialize() override;
 
+    /** Renders the World. */
+    virtual void Write() override;
+
     /** Get the Tableau. */
     inline SATableau* GetTableau() const { return Tableau.get(); }
 
@@ -33,6 +36,9 @@ public:
 
     /** Get the Game Rules */
     inline SASolitaireRules* GetGameRules() const { return GameRules.get(); }
+
+    /** Increments the move count. */
+    inline void IncrementMoveCount() { MoveCount++; }
 
 protected:
     /** Unique pointer to Tableau */
@@ -49,4 +55,7 @@ protected:
 
     /** Unique pointer to game rules */
     SUniquePtr<SASolitaireRules> GameRules = nullptr;
+
+    /** Number of moves the player has made. */
+    SUInt64 MoveCount = 0;
 };

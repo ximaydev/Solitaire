@@ -44,11 +44,11 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 			return;
 		}
 
+		// Get world
+		SSharedPtr<SGameBoardWorld> GameBoardWorld = GetWorld<SGameBoardWorld>();
+
 		if (SelectedOption == TEXT("4"))
 		{
-			// Get world
-			SSharedPtr<SGameBoardWorld> GameBoardWorld = GetWorld<SGameBoardWorld>();
-
 			// Card pointers
 			SSharedPtr<SACard> Card1 = nullptr;
 			SSharedPtr<SACard> Card2 = nullptr;
@@ -78,13 +78,19 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 
 				// Add Card1 to the foundation list at the specified column index
 				GameBoardWorld->GetFoundationList()->AddNewCardToFoundationList(Card2, Card1ColumnIndex);
-			}
 
-			ResetInputs();
+				// Increment move count and reset inputs
+				GameBoardWorld->IncrementMoveCount();
+				ResetInputs();
+			}
 		}
 		else if (SelectedOption == TEXT("5"))
 		{
-			GetWorld<SGameBoardWorld>()->GetStockPile()->UseStockPile();
+			// Use Stock Pile
+			GameBoardWorld->GetStockPile()->UseStockPile();
+			
+			// Increment move count and reset inputs
+			GameBoardWorld->IncrementMoveCount();
 			ResetInputs();
 		}
 
@@ -281,7 +287,10 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 			// Place the King card into the appropriate tableau column
 			Cards[ColumnNum].push_back(Card1);
 
+			// Increment move count and reset inputs
+			GameBoardWorld->IncrementMoveCount();
 			ResetInputs();
+
 			return;
 		}
 
@@ -312,6 +321,8 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		S_LOG_WARNING(LogGameBoard, TEXT("Unknown command: %s"), SelectedOption.data());
 	}
 
+	// Reset inputs and increase move counter
+	GameBoardWorld->IncrementMoveCount();
 	ResetInputs();
 }
 
