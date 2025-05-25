@@ -27,6 +27,9 @@ class SSolitaireEngine;
 // Must always maintain a consistent name.
 #define DefaultAudioConfig  TEXT("DefaultAudio.ini")
 
+/** Represents an invalid or uninitialized index. Typically used to indicate that a valid index was not found. */
+SOLITAIRE_ENGINE_API const extern SUInt32 INDEX_NONE;
+
 namespace Core::Paths
 {
 	/** Global variable to store the project root path */

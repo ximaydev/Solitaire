@@ -8,11 +8,16 @@ class SACard;
 class SAFoundationList final : public SAActor
 {
 public:
+    // Number of columns (piles) in the foundation area of the game board
+    static constexpr SUInt32 NumFoundationColumns = 4;
+
+    using FoundationPilesArray = SArray<SVector<SSharedPtr<SACard>>, NumFoundationColumns>;
+
     /** Constructor */
-    SAFoundationList(SSharedPtr<SWorld> NewWorld);
+    SAFoundationList(SSharedPtr<SWorld> NewWorld, const SGridPositionU32& NewGridPosition);
 
     /** Get Cards */
-    inline const SArray<SVector<SSharedPtr<SACard>>, 4>& GetCards() const { return FoundationList; }
+    inline const FoundationPilesArray& GetCards() const { return FoundationList; }
 
     /** Add a new card to the Foundation Lists */
     bool AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SUInt8 Position);
@@ -25,5 +30,5 @@ public:
 
 protected:
     /** Array of 4 Foundation columns */
-    SArray<SVector<SSharedPtr<SACard>>, 4> FoundationList;
+    FoundationPilesArray FoundationList;
 };

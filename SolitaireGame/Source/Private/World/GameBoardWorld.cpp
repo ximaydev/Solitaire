@@ -34,23 +34,37 @@ SBool SGameBoardWorld::Initialize()
     // Number of cards to assign to the tableau
     constexpr SUInt8 TableauCardNum = 28;
 
+    // Create solitaire game rules
+    GameRules = SpawnActor<SUniquePtr<SASolitaireRules>, SASolitaireRules>(AsShared<SGameBoardWorld>());
+
+    // Get Console Renderer
+    SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
+
+    constexpr SWStringView Operation1 = TEXT("1 - Move a card from tableau to another tableau column");
+    constexpr SWStringView Operation2 = TEXT("2 - Move a card from tableau to foundation");
+    constexpr SWStringView Operation3 = TEXT("3 - Move a card from the waste pile to tableau");
+    constexpr SWStringView Operation4 = TEXT("4 - Move a card from the waste pile to foundation");
+    constexpr SWStringView Operation5 = TEXT("5 - Draw the next set of cards from the stock pile");
+    ConsoleRenderer->Write(SGridPositionU32(65, 36), Operation1.data(), Operation1.size(), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(65, 37), Operation2.data(), Operation2.size(), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(65, 38), Operation3.data(), Operation3.size(), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(65, 39), Operation4.data(), Operation4.size(), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(65, 40), Operation5.data(), Operation5.size(), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+
+    // Create Move Manager
+    MoveManager = SpawnActor<SUniquePtr<SSolitaireMoveManager>, SSolitaireMoveManager>(SGridPositionU32(65, 42), AsShared<SGameBoardWorld>(), TEXT("Choose an operation:"));
+
     // Initialize Tableau with the first 28 cards, move them into the tableau vector
-    Tableau = SpawnActor<SUniquePtr<SATableau>, SATableau>(SGridPositionU32(5, 20), AsShared<SGameBoardWorld>(), SVector<SSharedPtr<SACard>>(std::make_move_iterator(Cards.begin()), std::make_move_iterator(Cards.begin() + TableauCardNum)));
+    Tableau = SpawnActor<SUniquePtr<SATableau>, SATableau>(SGridPositionU32(5, 4), AsShared<SGameBoardWorld>(), SVector<SSharedPtr<SACard>>(std::make_move_iterator(Cards.begin()), std::make_move_iterator(Cards.begin() + TableauCardNum)));
 
     // Remove the 28 cards moved to Tableau from the main card vector
     Cards.erase(Cards.begin(), Cards.begin() + TableauCardNum);
 
     // Create StockPile with the remaining cards
-    StockPile = SpawnActor<SUniquePtr<SAStockPile>, SAStockPile>(SGridPositionU32(70, 10), AsShared<SGameBoardWorld>(), std::move(Cards));
-
-    // Create solitaire game rules
-    GameRules = SpawnActor<SUniquePtr<SASolitaireRules>, SASolitaireRules>(AsShared<SGameBoardWorld>());
+    StockPile = SpawnActor<SUniquePtr<SAStockPile>, SAStockPile>(SGridPositionU32(100, 5), AsShared<SGameBoardWorld>(), std::move(Cards));
 
     // Create FoundationList
-    FoundationList = SpawnActor<SUniquePtr<SAFoundationList>, SAFoundationList>(AsShared<SGameBoardWorld>());
-
-    // Create Move Manager
-    MoveManager = SpawnActor<SUniquePtr<SSolitaireMoveManager>, SSolitaireMoveManager>(SGridPositionU32(100, 45), AsShared<SGameBoardWorld>(), TEXT("Type text :"));
+    FoundationList = SpawnActor<SUniquePtr<SAFoundationList>, SAFoundationList>(AsShared<SGameBoardWorld>(), SGridPositionU32(100, 15));
 
     // Log
     S_LOG(LogGameBoard, TEXT("GameBoardWorld initialized."));

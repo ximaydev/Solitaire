@@ -5,6 +5,9 @@
 
 #pragma comment(lib, "Shlwapi.lib")
 
+/** Represents an invalid or uninitialized index. Typically used to indicate that a valid index was not found. */
+const SUInt32 INDEX_NONE = -1;
+
 namespace Core::Paths
 {
     /** Global variable to store the project root path */

@@ -8,11 +8,16 @@ class SACard;
 class SATableau final : public SAActor
 {
 public:
+    /** Number of columns in the tableau */
+    static constexpr SUInt32 ColumnCount = 7;
+
+    using TableauArray = SArray<SVector<SSharedPtr<SACard>>, ColumnCount>;
+
 	/** Constructor */
 	SATableau(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, SVector<SSharedPtr<SACard>>&& NewCards);
 
     /** Get Cards */
-    inline const SArray<SVector<SSharedPtr<SACard>>, 7>& GetCards() const { return Cards; }
+    inline const TableauArray& GetCards() const { return Cards; }
 
     /** Renders the tableau to the console */
     void Write() override;
@@ -24,9 +29,6 @@ protected:
     /** Generates the card columns */
     void GenerateColumns(SVector<SSharedPtr<SACard>>&& NewCards);
 
-    /** Number of columns in the tableau */
-    SUInt32 ColumnCount = 7;
-
     /** Array of card columns */
-    SArray<SVector<SSharedPtr<SACard>>, 7> Cards;
+    TableauArray Cards;
 };

@@ -36,12 +36,19 @@ ECardRank SCardConverter::StringToCardRank(const SWString& String)
     else if (String == TEXT("K")) return ECardRank::King;
     else
     {
-        // Try to convert the string to an integer value
-        SUInt32 Value = SStringLibrary::Convert<SUInt32>(String);
+        // Check if the input string consists only of digit characters (e.g., "2", "10")
+        if (std::all_of(String.begin(), String.end(), ::isdigit))
+        {
+            // Convert the numeric string to an unsigned integer
+            SUInt32 Value = static_cast<SUInt32>(std::stoi(String));
 
-        // If the value is in the valid range for numbered cards (2–10), cast it to ECardRank
-        if (Value >= 2 && Value <= 10)
-            return static_cast<ECardRank>(Value);
+            // Check if the numeric value is within the valid range of non-face card ranks (2–10)
+            if (Value >= 2 && Value <= 10)
+            {
+                // Cast the integer to the corresponding ECardRank enum and return it
+                return static_cast<ECardRank>(Value);
+            }
+        }
     }
 
     // If none of the cases matched, return a special value indicating an invalid or unrecognized rank.
@@ -116,7 +123,7 @@ SBool SACard::CanBePlacedOnTableau(const FCardInfo& Other) const
     SBool bIsRankCorrect = static_cast<SUInt8>(CardInfo.GetCardRank()) + 1 == static_cast<SUInt8>(Other.GetCardRank());
 
     // Check if the suits are of opposite colors
-    SBool bIsColorOpposite = !IsSameSuit(Other);
+    SBool bIsColorOpposite = !HasSameColor(Other);
 
     // The card can be placed if both rules are satisfied
     return bIsRankCorrect && bIsColorOpposite;
@@ -133,6 +140,18 @@ void SACard::SetNextCard(const SGridPositionU32& NextCardGridPosition, SSharedPt
         // Update the grid position of the new next card
         NewNextCard->SetGridPosition(NextCardGridPosition);
     }
+}
+
+SBool SACard::CanBePlacedOnFoundation(const FCardInfo& Other) const
+{
+    // If there is no next card (i.e., this is the bottom card in the stack)
+    if (GetNextCard() == nullptr)
+    {
+        // Check if this card's suit matches the other card's suit and if this card's rank is exactly one higher than the other card's rank
+        return CardInfo.GetCardSuit() == Other.GetCardSuit() && static_cast<SUInt8>(CardInfo.GetCardRank()) == static_cast<SUInt8>(Other.GetCardRank()) + 1;
+    }
+
+    return false;
 }
 
 void SACard::SetIsFaceUp(SBool NewIsFaceUp)

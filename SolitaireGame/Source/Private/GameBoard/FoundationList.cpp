@@ -1,6 +1,6 @@
 #include "SolitaireGamePCH.h"
 
-SAFoundationList::SAFoundationList(SSharedPtr<SWorld> NewWorld) : SAActor(SGridPositionU32(0, 0), NewWorld) {}
+SAFoundationList::SAFoundationList(SSharedPtr<SWorld> NewWorld, const SGridPositionU32& NewGridPosition) : SAActor(NewGridPosition, NewWorld) {}
 
 bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SUInt8 Position)
 {
@@ -18,8 +18,8 @@ bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SU
             // Push card to Cards
             Cards.push_back(NewCard);
 
-            // Set Next card for the penultimate card
-            NewCard->SetNextCard(SGridPositionU32(GridPosition.first + (Position * 8), GridPosition.second), nullptr);
+            // Set Grid Position
+            NewCard->SetGridPosition(SGridPositionU32(GridPosition.first + (Position * 8), GridPosition.second));
 
             S_LOG(LogGameBoard, TEXT("Successfully added Ace to an empty foundation."));
             return true;
@@ -31,37 +31,11 @@ bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SU
         }
     }
 
-    // Get the last card on the foundation vector
-    const SSharedPtr<SACard>& LastCard = Cards.back();
+    // Set Next card for the penultimate card
+    Cards.back()->SetNextCard(SGridPositionU32(GridPosition.first + (Position * 8), GridPosition.second), NewCard);
 
-    // Get card info
-    const FCardInfo& LastCardInfo = LastCard->GetCardInfo();
-    const FCardInfo& NewCardInfo = NewCard->GetCardInfo();
-
-    // Check if suits match
-    if (LastCardInfo.GetCardSuit() == NewCardInfo.GetCardSuit())
-    {
-        // Check if rank is exactly one higher
-        if ((static_cast<SUInt8>(LastCardInfo.GetCardRank()) + 1) == static_cast<SUInt8>(NewCardInfo.GetCardRank()))
-        {
-            // Set Next card for the penultimate card
-            Cards.back()->SetNextCard(SGridPositionU32(GridPosition.first + (Position * 8), GridPosition.second), NewCard);
-
-            // Push card to Cards
-            Cards.push_back(NewCard);
-
-            S_LOG(LogGameBoard, TEXT("Successfully added card to the foundation."));
-            return true;
-        }
-        else
-        {
-            S_LOG(LogGameBoard, TEXT("Cannot add card. Rank must be exactly one higher."));
-        }
-    }
-    else
-    {
-        S_LOG(LogGameBoard, TEXT("Cannot add card. Suits do not match."));
-    }
+    // Push card to Cards
+    Cards.push_back(NewCard);
 
     return false;
 }

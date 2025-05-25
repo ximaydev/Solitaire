@@ -19,11 +19,20 @@ bool SASolitaireRules::CanMoveWastePileToBoard(const SSharedPtr<SACard> WastePil
 
 bool SASolitaireRules::CanMoveBoardToBoard(const SSharedPtr<SACard> BoardCard1, const SSharedPtr<SACard> BoardCard2)
 {
+    // Both cards must be face up to allow move
+    if (!BoardCard1->GetCardInfo().IsFaceUp || !BoardCard2->GetCardInfo().IsFaceUp)
+        return false;
+
+    // Check if placing BoardCard1 on BoardCard2 is legal by game rules
     return CanPlaceCardOnTableau(BoardCard1, BoardCard2);
 }
 
 bool SASolitaireRules::CanMoveBoardToFoundationList(const SSharedPtr<SACard> BoardCard, const SSharedPtr<SACard> FoundationListCard)
 {
+    // BoardCard must be face up to allow move
+    if (!BoardCard->GetCardInfo().IsFaceUp)
+        return false;
+
     return CanPlaceCardOnFoundation(BoardCard, FoundationListCard);
 }
 
@@ -78,7 +87,7 @@ bool SASolitaireRules::CanPlaceCardOnFoundation(const SSharedPtr<SACard> CardToP
         S_LOG(LogTemp, TEXT("Foundation pile is empty. Checking if the card is an Ace..."));
 
         // If the card is Ace, it can be placed as the base of the foundation pile.
-        if (CardToPlace->IsFoundationBaseCard())
+        if (CardToPlace->IsFoundationBaseCard() && CardToPlace->GetNextCard() == nullptr)
         {
             // Log successful.
             S_LOG(LogTemp, TEXT("Card is Ace. Move to empty foundation is allowed."));
@@ -90,11 +99,8 @@ bool SASolitaireRules::CanPlaceCardOnFoundation(const SSharedPtr<SACard> CardToP
         return false;
     }
 
-    // Get card info from the current top of the foundation pile.
-    const FCardInfo& FoundationInfo = FoundationCard->GetCardInfo();
-
     // Use CanBePlacedOnFoundation to check suit match and +1 rank rule.
-    const SBool bCanPlace = CardToPlace->CanBePlacedOnFoundation(FoundationInfo);
+    const SBool bCanPlace = CardToPlace->CanBePlacedOnFoundation(FoundationCard->GetCardInfo());
 
     // Log result of placement rule check.
     if (bCanPlace)

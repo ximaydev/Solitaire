@@ -24,20 +24,41 @@ SSharedPtr<SACard> SAWastePile::UseTopCard()
 	// Get the card at the front (top) of the pile
 	SSharedPtr<SACard> TopCard = Cards.back();
 
-	// Remove the last card from the vector (the one we just took)
-	Cards.erase(Cards.end());
+	// Clear buffer 
+	TopCard->ClearBuffer();
 
+	// Remove the last card from the vector (the one we just took)
+	Cards.pop_back();
+
+	//TODO Przetasowac je¿eli Cards jest juz pusty
+	
 	// Return the card that was removed
 	return TopCard;
 }
 
 void SAWastePile::MoveCardsToWastePile(SVector<SSharedPtr<SACard>>& StockPileCards)
 {
-	// If the waste pile has cards, move them back to the stock pile
-	if (!Cards.empty())
+	// Move all cards from the waste pile back to the stock pile
+	for (auto Iterator = Cards.rbegin(); Iterator != Cards.rend(); Iterator++)
 	{
-		StockPileCards.insert(StockPileCards.begin(), std::make_move_iterator(Cards.begin()), std::make_move_iterator(Cards.end()));
+		// Get Card
+		SSharedPtr<SACard>& Card = *Iterator;
+
+		// Set Grid Position. Last element is always in the stock pile position
+		Card->SetGridPosition(StockPileCards.back()->GetGridPosition());
+
+		// Flip card face down before moving
+		Card->SetIsFaceUp(false);
+
+		// Clear buffer
+		Card->ClearBuffer();
+
+		// Emplace
+		StockPileCards.emplace(StockPileCards.begin(), std::move(Card));
 	}
+
+	// Clear the waste pile after transferring the cards
+	Cards.clear();
 
 	// Get CardsToRevealPerStockUse
 	SUInt32 Amount = GetWorld<SGameBoardWorld>()->GetGameRules()->CardsToRevealPerStockUse;

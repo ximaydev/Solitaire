@@ -153,13 +153,16 @@ public:
     void SetNextCard(const SGridPositionU32& NextCardGridPosition, SSharedPtr<SACard> NewNextCard);
 
     /** Sets the next card in a sequence */
-    void SetNextCard(SSharedPtr<SACard> NewNextCard) { NextCard = NewNextCard; }
+    inline void SetNextCard(SSharedPtr<SACard> NewNextCard) { NextCard = NewNextCard; }
 
-    /** Checks if both cards belong to the same suit. */
-    inline SBool IsSameSuit(const FCardInfo& Other) const { return CardInfo.GetCardSuit() == Other.GetCardSuit(); }
+    /** Get the next card */
+    inline SSharedPtr<SACard> GetNextCard() const { return NextCard; }
+
+    /** Checks if both cards has the same color of the card. */
+    inline SBool HasSameColor(const FCardInfo& Other) const { return CardInfo.GetColor() == Other.GetColor(); }
 
     /** Determines if this card can be placed on the given foundation stack card. */
-    inline SBool CanBePlacedOnFoundation(const FCardInfo& Other) const { return CardInfo.GetCardSuit() == Other.GetCardSuit() && static_cast<SUInt8>(CardInfo.GetCardRank()) == static_cast<SUInt8>(Other.GetCardRank()) + 1; }
+    SBool CanBePlacedOnFoundation(const FCardInfo& Other) const;
 
     /** Returns true if the card can be placed on an empty tableau column (only Kings). */
     inline SBool CanBePlacedOnEmptyTableau() const { return CardInfo.GetCardRank() == ECardRank::King; }
