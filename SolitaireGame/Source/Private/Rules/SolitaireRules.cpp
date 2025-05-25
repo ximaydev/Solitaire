@@ -20,7 +20,10 @@ bool SASolitaireRules::CanMoveWastePileToBoard(const SSharedPtr<SACard> WastePil
 bool SASolitaireRules::CanMoveBoardToBoard(const SSharedPtr<SACard> BoardCard1, const SSharedPtr<SACard> BoardCard2)
 {
     // Both cards must be face up to allow move
-    if (!BoardCard1->GetCardInfo().IsFaceUp || !BoardCard2->GetCardInfo().IsFaceUp)
+    if (!BoardCard1 || !BoardCard1->GetCardInfo().IsFaceUp)
+        return false;
+
+    if (!BoardCard2 || !BoardCard2->GetCardInfo().IsFaceUp)
         return false;
 
     // Check if placing BoardCard1 on BoardCard2 is legal by game rules

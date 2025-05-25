@@ -6,7 +6,7 @@ SAConsolePrompt::SAConsolePrompt(const SGridPositionU32& NewGridPosition, SShare
     : SAActor(NewGridPosition, NewWorld), TextColor(NewTextColor), TextToShow(NewTextToShow), ConsolePromptCallback(NewCallback) 
 {
     // Calculate the input start position: just after the prompt text
-    const SGridPositionU32 ConsoleInputHandlerGridPosition = { GridPosition.first + TextToShow.size() + 1, GridPosition.second };
+    const SGridPositionU32 ConsoleInputHandlerGridPosition = { GridPosition.first + static_cast<SUInt32>(TextToShow.size() + 1), GridPosition.second };
 
     // Compute maximum input length from current cursor position to screen edge (minus 2 for margin)
     const SSize MaxInputLength = static_cast<SSize>(SConsoleRenderer::GetInstance()->GetScreenWidth() - ConsoleInputHandlerGridPosition.first - 2);

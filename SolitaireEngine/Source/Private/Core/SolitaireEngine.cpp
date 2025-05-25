@@ -7,11 +7,11 @@
 
 bool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
 {
-    // Log the begining of the engine initialization
-    S_LOG(LogSolitaireEngine, TEXT("Initializing Solitaire Engine..."));
-
     // Create necessary engine directories
     Core::Paths::CreateDirectories();
+
+    // Log the begining of the engine initialization
+    S_LOG(LogSolitaireEngine, TEXT("Initializing Solitaire Engine..."));
 
     // Loads the config files from the disk
     SIniFileManager::GetInstance()->LoadConfigFilesFromDisk();
