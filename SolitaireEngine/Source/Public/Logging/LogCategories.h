@@ -17,3 +17,5 @@ constexpr SWStringView LogSolitaireEngine = TEXT("LogSolitaireEngine");
 constexpr SWStringView LogConsoleRenderer = TEXT("LogConsoleRenderer");
 constexpr SWStringView LogCard = TEXT("LogCard");
 constexpr SWStringView LogGameBoard = TEXT("LogGameBoard");
+constexpr SWStringView LogConsole = TEXT("LogConsole");
+constexpr SWStringView LogSolitaireMoveManager = TEXT("LogSolitaireMoveManager");

@@ -1,29 +1,17 @@
 #include "SolitaireGamePCH.h"
-#include "GameBoard/Card.h"
-#include "GameBoard/WastePile.h"
-#include "GameBoard/StockPile.h"
-#include "Framework/World.h"
-#include "Inputs/ConsoleInputHandler.h"
-#include "Framework/ConsolePrompt.h"
-#include "GameBoard/Tableau.h"
-#include "World/GameBoardWorld.h"
-#include "Rules/SolitaireRules.h"
-#include "GameBoard/FoundationList.h"
-
-
-SUniquePtr<SAStockPile> StockPile = nullptr;
-
-void LogSomething()
-{
-    StockPile->UseStockPile();
-}
+#include "Core/Console.h"
 
 int main()
 {
+    // Create World
     SSharedPtr<SWorld> World = std::make_shared<SGameBoardWorld>();
 
-    GSolitaireEngine->Initialize(World);
-    GSolitaireEngine->Run();
+    // Initialzie Console
+    GConsole->Initialize(World);
+
+    // This code runs when the player exits the game via the in-game menu (not by clicking the X button).
+    // We manually call ConsoleCtrlHandler to simulate the same shutdown behavior as a forced window close.
+    SConsole::ConsoleCtrlHandler(CTRL_CLOSE_EVENT);
 
     return 0;
 }

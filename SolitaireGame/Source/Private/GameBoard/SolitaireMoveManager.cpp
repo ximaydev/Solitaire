@@ -37,7 +37,7 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 		if (RangeOfOperation < MinOperationNum || RangeOfOperation > MaxOperationNum)
 		{
 			// Log a warning if the selected operation index is out of valid bounds
-			S_LOG_WARNING(LogGameBoard, TEXT("Selected operation index (%u) is out of valid range [%u, %u]"), RangeOfOperation, MinOperationNum, MaxOperationNum);
+			S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Selected operation index (%u) is out of valid range [%u, %u]"), RangeOfOperation, MinOperationNum, MaxOperationNum);
 
 			// Reset inputs to allow the user to try again
 			ResetInputs();
@@ -60,7 +60,7 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 
 			if (WastePileCards.empty())
 			{
-				S_LOG_WARNING(LogGameBoard, TEXT("Waste pile is empty - Card1 is nullptr"));
+				S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Waste pile is empty - Card1 is nullptr"));
 				ResetInputs();
 				return;
 			}
@@ -109,7 +109,7 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 	else // If both SelectedOption and MoveCommand are already set, but we still get input, log an warning
 	{
 		// Log an error because the state machine should have reset or handled the inputs already
-		S_LOG_WARNING(LogGameBoard, TEXT("Unexpected input: MoveCommand and SelectedOption are already set"));
+		S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Unexpected input: MoveCommand and SelectedOption are already set"));
 
 		// Reset 
 		MoveCommand = TEXT("");
@@ -161,7 +161,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		if (!bFoundCard1)
 		{
 			// Log warning and reset input if either card was not found
-			S_LOG_WARNING(LogGameBoard, TEXT("Card1 is nullptr"));
+			S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Card1 is nullptr"));
 			ResetInputs();
 			return;
 		}
@@ -180,7 +180,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 				ColumnNum = std::clamp<SUInt32>(ColumnNum, 1, 7) - 1;
 
 				// Remove the chain of cards from its original location in the tableau
-				RemoveCardChainFromTableau(Cards, Card1ColumnIndex, Card1CardIndex, Chain.size());
+				RemoveCardChainFromTableau(Cards, Card1ColumnIndex, Card1CardIndex, static_cast<SUInt32>(Chain.size()));
 
 				// Reposition the first card in the chain according to the target column's grid position
 				const SGridPositionU32& TableauGridPositon = GameBoardWorld->GetTableau()->GetGridPosition();
@@ -196,7 +196,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 				AttachCardChainBelowCard(Chain, Card2);
 
 				// Remove the card chain from its original position in the tableau
-				RemoveCardChainFromTableau(Cards, Card1ColumnIndex, Card1CardIndex, Chain.size());
+				RemoveCardChainFromTableau(Cards, Card1ColumnIndex, Card1CardIndex, static_cast<SUInt32>(Chain.size()));
 
 				// Insert the card chain into the tableau after Card2's position
 				InsertCardChainInTableau(Cards, Card2ColumnIndex, Card2CardIndex, Chain);
@@ -208,7 +208,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		else
 		{
 			// Log
-			S_LOG(LogGameBoard, TEXT("Move rejected: Card1 can't be placed on Card2 due to game rules"));
+			S_LOG(LogSolitaireMoveManager, TEXT("Move rejected: Card1 can't be placed on Card2 due to game rules"));
 		}
 	}
 	else if (SelectedOption == TEXT("2"))
@@ -220,7 +220,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		if (!bFoundCard1)
 		{
 			// Log an error indicating that Card1 is null, so the operation cannot proceed
-			S_LOG_ERROR(LogGameBoard, TEXT("Card1 is nullptr we can't continue"));
+			S_LOG_ERROR(LogSolitaireMoveManager, TEXT("Card1 is nullptr we can't continue"));
 
 			// Reset any inputs or state related to the card selection
 			ResetInputs();
@@ -259,7 +259,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 
 		if (WastePileCards.empty())
 		{
-			S_LOG_WARNING(LogGameBoard, TEXT("Waste pile is empty - Card1 is nullptr"));
+			S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Waste pile is empty - Card1 is nullptr"));
 			ResetInputs();
 			return;
 		}
@@ -297,7 +297,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		// If Card1 was not found in the tableau and it's not a King, exit
 		if (!bFoundCard1)
 		{
-			S_LOG_WARNING(LogGameBoard, TEXT("Card1 not found in tableau"));
+			S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Card1 not found in tableau"));
 			ResetInputs();
 			return;
 		}
@@ -318,7 +318,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 	}
 	else
 	{
-		S_LOG_WARNING(LogGameBoard, TEXT("Unknown command: %s"), SelectedOption.data());
+		S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Unknown command: %s"), SelectedOption.data());
 	}
 
 	// Reset inputs and increase move counter
@@ -338,7 +338,7 @@ void SSolitaireMoveManager::ParseCard(const SWString& Command, ECardRank& OutCar
 	// Check if the input command is at least 2 characters long (suit + rank)
 	if (Command.size() < 2)
 	{
-		S_LOG_WARNING(LogGameBoard, TEXT("Command is too short"));
+		S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Command is too short"));
 		return;
 	}	
 

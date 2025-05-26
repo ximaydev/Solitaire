@@ -18,12 +18,14 @@ class SConsoleInputHandler;
  */
 class SOLITAIRE_ENGINE_API SSolitaireEngine
 {
+	friend class SConsole;
+
 public:
 	/** Initializes all subsystems of the Solitaire Engine. */
-	bool Initialize(SSharedPtr<SWorld> NewWorld);
-	
-	/** Runs the main game loop. */
-	void Run();
+	SBool Initialize(SSharedPtr<SWorld> NewWorld);
+
+	/** Set Current world */
+	void SetCurrentWorld(const SSharedPtr<SWorld> NewWorld);
 
 	/** Get UseConsoleInputHandler */
 	inline SBool GetUseConsoleInputHandler() const { return UseConsoleInputHandler; }
@@ -49,9 +51,6 @@ public:
 	/** Set UseConsoleInputHandler */
 	inline void SetUseConsoleInputHandler(SBool NewUseConsoleInputHandler) { UseConsoleInputHandler = NewUseConsoleInputHandler; }
 
-	/** Set Current world */
-	void SetCurrentWorld(const SSharedPtr<SWorld> NewWorld);
-
 private:
 	/** Shuts down the engine and cleans up resources. */
 	void ShutDown();
@@ -61,6 +60,9 @@ private:
 
 	/** Processes input events. */
 	void ProcessInput();
+
+	/** Runs the main game loop. */
+	void Run();
 
 	/** Holds the persistent callback for the StartTyping key action. */
 	SCallback StartTypingCallback;

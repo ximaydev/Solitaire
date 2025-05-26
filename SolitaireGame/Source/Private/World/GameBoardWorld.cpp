@@ -45,11 +45,11 @@ SBool SGameBoardWorld::Initialize()
     constexpr SWStringView Operation3 = TEXT("3 - Move a card from the waste pile to tableau");
     constexpr SWStringView Operation4 = TEXT("4 - Move a card from the waste pile to foundation");
     constexpr SWStringView Operation5 = TEXT("5 - Draw the next set of cards from the stock pile");
-    ConsoleRenderer->Write(SGridPositionU32(65, 36), Operation1.data(), Operation1.size(), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
-    ConsoleRenderer->Write(SGridPositionU32(65, 37), Operation2.data(), Operation2.size(), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
-    ConsoleRenderer->Write(SGridPositionU32(65, 38), Operation3.data(), Operation3.size(), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
-    ConsoleRenderer->Write(SGridPositionU32(65, 39), Operation4.data(), Operation4.size(), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
-    ConsoleRenderer->Write(SGridPositionU32(65, 40), Operation5.data(), Operation5.size(), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(65, 36), Operation1.data(), static_cast<SUInt32>(Operation1.size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(65, 37), Operation2.data(), static_cast<SUInt32>(Operation2.size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(65, 38), Operation3.data(), static_cast<SUInt32>(Operation3.size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(65, 39), Operation4.data(), static_cast<SUInt32>(Operation4.size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(65, 40), Operation5.data(), static_cast<SUInt32>(Operation5.size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
 
     // Create Move Manager
     MoveManager = SpawnActor<SUniquePtr<SSolitaireMoveManager>, SSolitaireMoveManager>(SGridPositionU32(65, 42), AsShared<SGameBoardWorld>(), TEXT("Choose an operation:"));
@@ -83,5 +83,5 @@ void SGameBoardWorld::Write()
 
     // Format and render the move count string
     SWString MovesString = std::format(TEXT("Moves: {}"), MoveCount);
-    ConsoleRenderer->Write(SGridPositionU32(115, 45), MovesString, MovesString.size(), true, FG_BLUE | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(115, 45), MovesString, static_cast<SUInt32>(MovesString.size()), true, FG_BLUE | ConsoleRenderer->GetCurrentBackgroundColor());
 }

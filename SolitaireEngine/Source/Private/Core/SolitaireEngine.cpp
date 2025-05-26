@@ -5,7 +5,7 @@
 #include "Inputs/ConsoleInputHandler.h"
 #include "Framework/World.h"
 
-bool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
+SBool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
 {
     // Create necessary engine directories
     Core::Paths::CreateDirectories();
@@ -53,6 +53,9 @@ bool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
     // Log the engine initialization completed
     S_LOG(LogTemp, TEXT("Solitaire Engine initialization completed."));
     
+    // Run Engine
+    Run();
+
     return true;
 }
 
@@ -63,6 +66,9 @@ void SSolitaireEngine::SetCurrentWorld(SSharedPtr<SWorld> NewWorld)
 
     // Initialize world
     CurrentWorld->Initialize();
+
+    // Log
+    S_LOG(LogSolitaireEngine, TEXT("New world has been set"));
 }
 
 void SSolitaireEngine::ShutDown()

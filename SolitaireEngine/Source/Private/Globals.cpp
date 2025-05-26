@@ -2,6 +2,7 @@
 #include "Globals.h"
 #include <Shlwapi.h>
 #include "Core/SolitaireEngine.h"
+#include "Core/Console.h"
 
 #pragma comment(lib, "Shlwapi.lib")
 
@@ -69,6 +70,9 @@ namespace Core::Paths
         #endif
     }
 }
+
+/** Global unique pointer instance managing the Console. */
+SUniquePtr<SConsole> GConsole = std::make_unique<SConsole>();
 
 /** Global unique pointer instance managing the Solitaire Engine. */
 SUniquePtr<SSolitaireEngine> GSolitaireEngine = std::make_unique<SSolitaireEngine>();
