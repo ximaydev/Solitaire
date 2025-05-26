@@ -13,7 +13,7 @@ SBool SConsole::Initialize(SSharedPtr<SWorld> NewWorld)
 void SConsole::ShutDown()
 {
     // Stop the engine
-    GSolitaireEngine->IsRunning = false;
+    GSolitaireEngine->ShutDown();
 
     // Log shutdown
     S_LOG(LogConsole, TEXT("Console has been shut down"));

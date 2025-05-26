@@ -76,11 +76,11 @@ void SSolitaireEngine::ShutDown()
     // Log the beginning of engine shutdown
     S_LOG(LogSolitaireEngine, TEXT("Shutting down the Solitaire Engine..."));
 
+    // Set IsRunning to false
+    IsRunning = false;
+
     // Log shutdown completion
     S_LOG(LogSolitaireEngine, TEXT("Solitaire Engine shutdown completed."));
-
-    // Ensure all log messages are flushed before exiting
-    SFileLogger::GetInstance()->WaitForLoggingToFinish();
 }
 
 void SSolitaireEngine::Render()
@@ -154,10 +154,4 @@ void SSolitaireEngine::Run()
         // Render the frame
         Render();
     }
-
-    // Log the end of the main loop
-    S_LOG(LogSolitaireEngine, TEXT("Solitaire Engine has stopped."));
-
-    // Shutdown the engine
-    ShutDown();
 }
