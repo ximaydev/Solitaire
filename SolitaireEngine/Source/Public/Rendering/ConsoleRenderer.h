@@ -45,16 +45,16 @@ public:
     static SConsoleRenderer* GetInstance();
 
     /** Returns the screen width in characters. */
-    inline const SUInt8 GetScreenWidth() const { return ScreenWidth; }
+    inline const SUInt16 GetScreenWidth() const { return ScreenWidth; }
 
     /** Returns the screen height in characters. */
-    inline const SUInt8 GetScreenHeight() const { return ScreenHeight; }
+    inline const SUInt16 GetScreenHeight() const { return ScreenHeight; }
 
     /** Returns half of the screen width. */
-    inline const SUInt8 GetHalfScreenWidth() const { return ScreenWidth / 2; }
+    inline const SUInt16 GetHalfScreenWidth() const { return ScreenWidth / 2; }
 
     /** Returns half of the screen height. */
-    inline const SUInt8 GetHalfScreenHeight() const { return ScreenHeight / 2; }
+    inline const SUInt16 GetHalfScreenHeight() const { return ScreenHeight / 2; }
 
     /** Returns Current Background color */
     inline WORD GetCurrentBackgroundColor() const { return CurrentBackgroundColor; }
@@ -107,13 +107,13 @@ protected:
     SUniquePtr<CHAR_INFO[]> ScreenBuffer;
 
     /** Width of the screen buffer in characters. */
-    SUInt8 ScreenWidth = 128;
+    SUInt16 ScreenWidth;
 
     /** Height of the screen buffer in characters. */
-    SUInt8 ScreenHeight = 48;
+    SUInt16 ScreenHeight;
 
     /** Size of the buffer */
-    SUInt16 BufferSize = ScreenWidth * ScreenHeight;
+    SUInt16 BufferSize;
 
     /** Current background color */
     WORD CurrentBackgroundColor;

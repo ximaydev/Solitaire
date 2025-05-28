@@ -14,36 +14,28 @@ SConsoleRenderer::SConsoleRenderer()
         assert(false && "Failed to get STD_OUTPUT_HANDLE");
     }
 
-    // Get system-defined minimum console dimensions
-    SInt32 MinWidth = GetSystemMetrics(SM_CXMIN);    // Minimum console width
-    SInt32 MinHeight = GetSystemMetrics(SM_CYMIN);   // Minimum console height
-    SBool bResized = false;                          // Flag if dimensions changed
+    // Get the current screen resolution in pixels
+    SUInt16 MonitorWidthPx = GetSystemMetrics(SM_CXSCREEN);    // Screen width in pixels
+    SUInt16 MonitorHeightPx = GetSystemMetrics(SM_CYSCREEN);   // Screen height in pixels
 
-    // Ensure the desired width is at least the system minimum
-    if (MinWidth > ScreenWidth)
-    {
-        // Update ScreenWidth to system minimum
-        ScreenWidth = MinWidth;
+    SBool WasResized = false;                             // Flag to indicate if console size was adjusted
 
-        // Mark that we resized
-        bResized = true;
-    }
-    // Ensure the desired height is at least the system minimum
-    if (MinHeight > ScreenHeight)
-    {
-        // Update ScreenHeight to system minimum
-        ScreenHeight = MinHeight;
+    // Get current console font information
+    CONSOLE_FONT_INFO FontInfo;
+    GetCurrentConsoleFont(ConsoleOutput, FALSE, &FontInfo);
 
-        // Mark that we resized
-        bResized = true;
-    }
+    // Calculate usable console area with margins:
+    // 70% width (leaving 15% margin on each side)
+    // 85% height (leaving 7.5% margin top and bottom)
+    SUInt16 UsableWidthPx = static_cast<SUInt16>(MonitorWidthPx * 0.70);
+    SUInt16 UsableHeightPx = static_cast<SUInt16>(MonitorHeightPx * 0.85);
 
-    // If either dimension changed, recalculate buffer size
-    if (bResized)
-    {
-        // Total console buffer cells
-        BufferSize = ScreenWidth * ScreenHeight;
-    }
+    // Calculate number of console character cells that fit into usable area
+    ScreenWidth = UsableWidthPx / FontInfo.dwFontSize.X;
+    ScreenHeight = UsableHeightPx / FontInfo.dwFontSize.Y;
+
+    // Total console buffer cells
+    BufferSize = ScreenWidth * ScreenHeight;
 
     // Define new console buffer size using COORD struct
     COORD NewBufferSize(ScreenWidth, ScreenHeight);
