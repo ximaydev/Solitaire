@@ -3,11 +3,14 @@
 SAStockPile::SAStockPile(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, SVector<SSharedPtr<SACard>>&& InitialCards) 
     : SAActor(NewGridPosition, NewWorld)
 {
-    // Initialize the Waste Pile
-    InitializeWastePile();
-
     // Fill the Stock Pile with cards
     FillInitialCards(std::move(InitialCards));
+}
+
+SAStockPile::SAStockPile(const SAStockPile& Other)
+{
+    // Call CopyFrom and perform a deep copy
+    CopyFrom(Other);
 }
 
 SSharedPtr<SACard> SAStockPile::GetTopCard() const
@@ -39,22 +42,31 @@ void SAStockPile::Write()
     }
 }
 
-void SAStockPile::UseStockPile()
+void SAStockPile::CopyFrom(const SAActor& Other)
 {
-    /** Moves cards to the WastePile */
-    WastePile->MoveCardsToWastePile(Cards);
-}
-
-void SAStockPile::InitializeWastePile()
-{
-    // Check if the WastePile isn't nullptr
-    if (WastePile)
+    // Attempt to cast the base class reference to a SAStockPile pointer
+    if (const SAStockPile* OtherStockPile = dynamic_cast<const SAStockPile*>(&Other))
     {
-        S_LOG_WARNING(LogCard, TEXT("WastePile is already initialized."))
-    }
+        // Call the parent CopyFrom
+        SAActor::CopyFrom(Other);
 
-    // Create a new WastePile positioned 10 units to the right of the StockPile
-    WastePile = GetWorld()->SpawnActor<SUniquePtr<SAWastePile>, SAWastePile>(SGridPositionU32(GetGridPosition().first + 10, GetGridPosition().second), GetWorld());
+        // Clear current Cards container to prepare for copying new cards
+        Cards.clear();
+
+        // Reserve memory upfront to avoid reallocations during copying
+        Cards.reserve(OtherStockPile->Cards.size());
+
+        // Deep copy each card from the other WastePile's Cards vector
+        for (const auto& Card : OtherStockPile->Cards)
+        {
+            // Create a new shared pointer with a copy of the card and move it into this container
+            Cards.push_back(std::move(std::make_shared<SACard>(*Card)));
+        }
+    }
+    else
+    {
+        S_LOG_ERROR(LogTemp, TEXT("CopyFrom failed, Casted failed other isn't type of SAStockPile."))
+    }
 }
 
 void SAStockPile::FillInitialCards(SVector<SSharedPtr<SACard>>&& InitialCards)

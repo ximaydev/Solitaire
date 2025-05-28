@@ -13,14 +13,38 @@ class SSolitaireMoveManager final : public SAActor
 {
 public:
 	/** Constructor */
-	SSolitaireMoveManager(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld>  NewWorld, const SWString& TextToShow);
+	SSolitaireMoveManager(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld);
+	SSolitaireMoveManager(const SSolitaireMoveManager& Other);
 
-protected:
+	/** Operators */
+	SSolitaireMoveManager operator=(const SSolitaireMoveManager& Other)
+	{
+		if (this != &Other)
+		{
+			// Call CopyFrom and perform a deep copy
+			CopyFrom(Other);
+		}
+		return *this;
+	}
+
+	/** Renders the Move Manager. */
+	void Write() override;
+
+	/** Clears the Move Manager from the console. */
+	void ClearBuffer() override;
+
+	/** Performs a deep copy of all owned data from 'other' into this object. */
+	virtual void CopyFrom(const SAActor& Other) override;
+
+	/** Performs a deep copy of the current object using the copy constructor. */
+	virtual SSharedPtr<SAActor> Clone() const override { return SSharedPtr<SAActor>(new SSolitaireMoveManager(*this)); }
+
 	/** Called when the player presses Enter after typing a line of input. */
 	void OnEnterClicked(const SWString& Line);
 
+protected:
 	/** Executes the card move based on the previously selected option and typed command. */
-	void ExecuteMoveCommand();
+	SBool ExecuteMoveCommand();
 
 	/** Reset Selected Option and Move Command */
 	void ResetInputs();
@@ -58,6 +82,7 @@ protected:
 	/** The detailed command input by the player, describing the specific action. */
 	SWString MoveCommand;
 
-	/** Prompt that displays available options and receives player move input via console. */
-	SUniquePtr<SAConsolePrompt> MoveInputPrompt;
+private:
+	/** Formatted string ready to be rendered in the console. */
+	SWString SelectedOptionString;
 };

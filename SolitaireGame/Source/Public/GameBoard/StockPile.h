@@ -1,5 +1,6 @@
 #pragma once
 #include "Framework/Actor.h"
+#include "Globals.h"
 
 /** Forward Declarations */
 class SAWastePile;
@@ -11,12 +12,24 @@ class SAStockPile final : public SAActor
 public:
 	/** Constructors */
     SAStockPile(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, SVector<SSharedPtr<SACard>>&& InitialCards);
+    SAStockPile(const SAStockPile& Other);
 
-	/** Get Waste Pile */
-	inline SAWastePile* GetWastePile() const { return WastePile.get(); }
+    /** Operators */
+    SAStockPile operator=(const SAStockPile& Other)
+    {
+        if (this != &Other)
+        {
+            // Call CopyFrom and perform a deep copy
+            CopyFrom(Other);
+        }
+        return *this;
+    }
 
     /** Get Cards */
     inline const SVector<SSharedPtr<SACard>>& GetCards() const { return Cards; }
+
+    /** Get Cards Mutable */
+    inline SVector<SSharedPtr<SACard>>& GetCards_Mutable() { return Cards; }
 
     /** Returns a shared pointer to the top card of the pile */
     SSharedPtr<SACard> GetTopCard() const;
@@ -27,18 +40,15 @@ public:
     /** Renders the Stock Pile. */
     void Write() override;
 
-    /** Uses the stock pile. Moves the specified number of cards from the stock pile to the waste pile. */
-    void UseStockPile();
+    /** Performs a deep copy of all owned data from 'other' into this object. */
+    void CopyFrom(const SAActor& Other) override;
+
+    /** Performs a deep copy of the current object using the copy constructor. */
+    virtual SSharedPtr<SAActor> Clone() const override { return SSharedPtr<SAActor>(new SAStockPile(*this)); }
 
 protected:
-    /** Initializes the Waste Pile at a position offset from the Stock Pile. */
-    void InitializeWastePile();
-
     /** Fills the pile with the initial set of cards (called once at setup) */
     void FillInitialCards(SVector<SSharedPtr<SACard>>&& InitialCards);
-
-    /** Unique pointer to the Waste Pile where drawn cards are placed */
-    SUniquePtr<SAWastePile> WastePile;
 
     /** Container holding all cards in this stock spile */
     SVector<SSharedPtr<SACard>> Cards;

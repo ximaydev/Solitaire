@@ -7,6 +7,12 @@ SATableau::SATableau(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld>
 	GenerateColumns(std::move(NewCards));
 }
 
+SATableau::SATableau(const SATableau& Other)
+{
+    // Call CopyFrom and perform a deep copy
+    CopyFrom(Other);
+}
+
 void SATableau::Write()
 {
     // Counters for positioning cards in a grid layout
@@ -45,6 +51,69 @@ void SATableau::ClearBuffer()
             // Clear buffer
             VectorCard->ClearBuffer();
         }
+    }
+}
+
+void SATableau::CopyFrom(const SAActor& Other)
+{
+    // Attempt to cast the base class reference to a SAFoundationList pointer
+    if (const SATableau* OtherFoundationList = dynamic_cast<const SATableau*>(&Other))
+    {
+        // Callt the parent CopyFrom
+        SAActor::CopyFrom(Other);
+
+        // Loop through each column index
+        for (SUInt32 Index = 0; Index < ColumnCount; Index++)
+        {
+            // Reference to the current vector of cards in 'this'
+            SVector<SSharedPtr<SACard>>& TargetVector = Cards[Index];
+
+            // Reference to the corresponding vector of cards in 'Other'
+            const SVector<SSharedPtr<SACard>>& SourceVector = OtherFoundationList->Cards[Index];
+
+            // Clear the current target vector before copying
+            TargetVector.clear();
+
+            // Pre-allocate memory to avoid reallocations
+            TargetVector.reserve(SourceVector.size());
+
+            // Deep copy each card from 'Other' to 'this'
+            for (const auto& Card : SourceVector)
+            {
+                // Make sure the pointer is valid before copying
+                if (Card)
+                {
+                    // Create a new card using copy constructor and add it to the target vector
+                    TargetVector.push_back(std::make_shared<SACard>(*Card));
+                }
+            }
+        }
+
+        // Loop through each column in the card layout
+        for (SUInt32 Index = 0; Index < ColumnCount; Index++)
+        {
+            // Get a reference to the current column of cards
+            const SVector<SSharedPtr<SACard>>& Column = Cards[Index];
+
+            // Traverse each card within the current column
+            for (SUInt32 CardIndex = 0; CardIndex < Column.size(); CardIndex++)
+            {
+                // If there is a next card, link it to the current one
+                if (CardIndex + 1 < Column.size())
+                {
+                    Column[CardIndex]->SetNextCard(Column[CardIndex + 1]);
+                }
+                else
+                {
+                    // If this is the last card in the column, set its next pointer to null
+                    Column[CardIndex]->SetNextCard(nullptr);
+                }
+            }
+        }
+    }
+    else
+    {
+        S_LOG_ERROR(LogTemp, TEXT("CopyFrom failed, Casted failed other isn't type of SATableau."))
     }
 }
 

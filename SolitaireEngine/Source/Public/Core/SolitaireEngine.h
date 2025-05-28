@@ -22,7 +22,7 @@ class SOLITAIRE_ENGINE_API SSolitaireEngine
 
 public:
 	/** Initializes all subsystems of the Solitaire Engine. */
-	SBool Initialize(SSharedPtr<SWorld> NewWorld);
+	SBool Initialize();
 
 	/** Set Current world */
 	void SetCurrentWorld(const SSharedPtr<SWorld> NewWorld);
@@ -50,6 +50,10 @@ public:
 
 	/** Set UseConsoleInputHandler */
 	inline void SetUseConsoleInputHandler(SBool NewUseConsoleInputHandler) { UseConsoleInputHandler = NewUseConsoleInputHandler; }
+
+	/** Creates initial map instance */
+	template<typename MapType>
+	inline void CreateInitialMap();
 
 private:
 	/** Shuts down the engine and cleans up resources. */
@@ -88,3 +92,19 @@ private:
 	/** Flag to determine whether to use this low-level Console Input Handle or the higher-level Input System. */
 	SBool UseConsoleInputHandler = false;
 };
+
+template<typename MapType>
+inline void SSolitaireEngine::CreateInitialMap()
+{
+	static_assert(std::is_base_of_v<SWorld, MapType>, "MapType must derive from SWorld");
+
+	// Set current world
+	SSharedPtr<MapType> World = std::make_shared<MapType>();
+	SetCurrentWorld(World);
+
+	// Initialize map
+	World->Initialize();
+
+	// Run Engine
+	Run();
+}

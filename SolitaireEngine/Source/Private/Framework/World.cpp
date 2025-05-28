@@ -2,22 +2,36 @@
 #include "Framework/World.h"
 #include "Framework/Actor.h"
 
-void SWorld::RegisterActor(SSharedPtr<SAActor> Actor)
+SWorld::SWorld(const SWorld& Other)
 {
-	/** Add the actor to the world's actor list */
-	Actors.push_back(Actor.get());
+	// Call CopyFrom and perform a deep copy
+	CopyFrom(Other);
 }
 
-void SWorld::RegisterActor(SAActor* Actor)
+void SWorld::CopyFrom(const SWorld& Other)
 {
-	/** Add the actor to the world's actor list */
-	Actors.push_back(Actor);
+	// Clear the current list of actors
+	Actors.clear();
+
+	// Pre-allocate memory to avoid reallocations
+	Actors.reserve(Other.Actors.size());
+
+	// Deep copy each actor by creating a new shared instance with copied data
+	for (const auto& ActorPtr : Other.Actors)
+	{
+		if (ActorPtr)
+		{
+			// Use the copy constructor to clone the actor's contents
+			SSharedPtr<SAActor> NewActor = std::make_shared<SAActor>(*ActorPtr);
+			Actors.push_back(NewActor);
+		}
+	}
 }
 
 void SWorld::Write()
 {
 	// Loop through each actor in the world
-	for (SAActor* Actor : Actors)
+	for (SSharedPtr<SAActor> Actor : Actors)
 	{
 		// Write the actors to the console at the given position
 		Actor->Write();

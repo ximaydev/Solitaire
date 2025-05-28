@@ -87,6 +87,12 @@ SACard::SACard(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWo
     UpdateCardVisual();
 }
 
+SACard::SACard(const SACard& Other)
+{
+    // Call CopyFrom and perform a deep copy
+    CopyFrom(Other);
+}
+
 void SACard::Write()
 {
     // Get the singleton instance of the console renderer
@@ -117,16 +123,29 @@ void SACard::ClearBuffer()
     }
 }
 
-SBool SACard::CanBePlacedOnTableau(const FCardInfo& Other) const
+void SACard::CopyFrom(const SAActor& Other)
 {
-    // Check if this card's rank is one lower than the target card (descending order rule)
-    SBool bIsRankCorrect = static_cast<SUInt8>(CardInfo.GetCardRank()) + 1 == static_cast<SUInt8>(Other.GetCardRank());
+    // Attempt to cast the base class reference to a SACard pointer
+    if (const SACard* OtherCard = dynamic_cast<const SACard*>(&Other))
+    {
+        // Call parent CopyFrom
+        SAActor::CopyFrom(Other);
 
-    // Check if the suits are of opposite colors
-    SBool bIsColorOpposite = !HasSameColor(Other);
+        // Do NOT copy the NextCard pointer here,
+        // since it's supposed to be handled separately in the tableau.
 
-    // The card can be placed if both rules are satisfied
-    return bIsRankCorrect && bIsColorOpposite;
+        // Copy card-specific data
+        CardInfo.IsFaceUp = OtherCard->CardInfo.IsFaceUp;
+        CardInfo.SetCardRank(OtherCard->CardInfo.GetCardRank());
+        CardInfo.SetCardSuit(OtherCard->CardInfo.GetCardSuit());
+        CardInfo.SetColor(OtherCard->CardInfo.GetColor());
+        CardVisualLines = OtherCard->CardVisualLines;
+        CardColorBuffer = OtherCard->CardColorBuffer;
+    }
+    else
+    {
+        S_LOG_ERROR(LogTemp, TEXT("CopyFrom failed, Casted failed other isn't type of SACard."))
+    }
 }
 
 void SACard::SetNextCard(const SGridPositionU32& NextCardGridPosition, SSharedPtr<SACard> NewNextCard)
@@ -140,18 +159,6 @@ void SACard::SetNextCard(const SGridPositionU32& NextCardGridPosition, SSharedPt
         // Update the grid position of the new next card
         NewNextCard->SetGridPosition(NextCardGridPosition);
     }
-}
-
-SBool SACard::CanBePlacedOnFoundation(const FCardInfo& Other) const
-{
-    // If there is no next card (i.e., this is the bottom card in the stack)
-    if (GetNextCard() == nullptr)
-    {
-        // Check if this card's suit matches the other card's suit and if this card's rank is exactly one higher than the other card's rank
-        return CardInfo.GetCardSuit() == Other.GetCardSuit() && static_cast<SUInt8>(CardInfo.GetCardRank()) == static_cast<SUInt8>(Other.GetCardRank()) + 1;
-    }
-
-    return false;
 }
 
 void SACard::SetIsFaceUp(SBool NewIsFaceUp)

@@ -116,6 +116,9 @@ using SVector = std::vector<T>;
 template<typename T>
 using SQueue = std::queue<T>;
 
+template<typename T>
+using SDeque = std::deque<T>;
+
 template<typename Key, typename Value>
 using SMap = std::map<Key, Value>;
 

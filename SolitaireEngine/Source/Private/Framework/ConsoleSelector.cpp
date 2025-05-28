@@ -1,5 +1,5 @@
 #include "SolitaireEnginePCH.h"
-#include "Rendering/ConsoleSelector.h"
+#include "Framework/ConsoleSelector.h"
 #include "Inputs/InputSystem.h"
 
 FSelectionCursor::FSelectionCursor(const SWString& NewCursor, const WORD NewCursorColor) : Cursor(NewCursor), CursorColor(NewCursorColor) {}
@@ -21,10 +21,8 @@ void FSelectionCursor::ClearBuffer()
     SConsoleRenderer::GetInstance()->ClearBufferAt(SGridPositionU32(GridPosition.first, GridPosition.second), static_cast<SUInt32>(Cursor.size()));
 }
 
-SConsoleSelector::SConsoleSelector(const SGridPositionU32& NewGridPosition) : SIConsoleRenderable(NewGridPosition) {}
-
-SConsoleSelector::SConsoleSelector(const SInitializerList<SPair<SWStringView, SCallback>>& InitializerList, const SGridPositionU32& NewGridPosition)
-    : SIConsoleRenderable(NewGridPosition)
+SAConsoleSelector::SAConsoleSelector(const SInitializerList<SPair<SWStringView, SCallback>>& InitializerList, const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld)
+    : SAActor(NewGridPosition, NewWorld)
 {   
     // Try to insert each element from the initializer list into the 'Options' map
     for (auto& Element : InitializerList)
@@ -43,7 +41,8 @@ SConsoleSelector::SConsoleSelector(const SInitializerList<SPair<SWStringView, SC
         if (SConsoleRenderer::GetInstance()->GetScreenWidth() >= CursorPositionX)
         {
             // Create the cursor instance with the specified string, color, and position
-            Cursor = std::make_unique<FSelectionCursor>(SGridPositionU32(CursorPositionX, GetGridPosition().second), CursorString, FG_RED);
+            Cursor = std::make_shared<FSelectionCursor>(SGridPositionU32(CursorPositionX, GetGridPosition().second), CursorString, FG_RED);
+            Initialize();
         }
         else
         {
@@ -52,20 +51,26 @@ SConsoleSelector::SConsoleSelector(const SInitializerList<SPair<SWStringView, SC
     }
 }
 
-SBool SConsoleSelector::Initialize()
+SAConsoleSelector::SAConsoleSelector(const SAConsoleSelector& Other)
+{
+    // Call CopyFrom and perform a deep copy
+    CopyFrom(Other);
+}
+
+SBool SAConsoleSelector::Initialize()
 {
     // Get Input System
     SInputSystem* InputSystem = SInputSystem::GetInstance();
 
     //Bind functions
-    InputSystem->AddCallback(EKeyAction::MoveDown, std::bind(&SConsoleSelector::OnArrowDownPressed, this));
-    InputSystem->AddCallback(EKeyAction::MoveUp, std::bind(&SConsoleSelector::OnArrowUpPressed, this));
-    InputSystem->AddCallback(EKeyAction::Select, std::bind(&SConsoleSelector::OnEnterPressed, this));
+    InputSystem->AddCallback(EKeyAction::MoveDown, std::bind(&SAConsoleSelector::OnArrowDownPressed, this));
+    InputSystem->AddCallback(EKeyAction::MoveUp, std::bind(&SAConsoleSelector::OnArrowUpPressed, this));
+    InputSystem->AddCallback(EKeyAction::Select, std::bind(&SAConsoleSelector::OnEnterPressed, this));
 
     return true;
 }
 
-void SConsoleSelector::Write()
+void SAConsoleSelector::Write()
 {
     // Get the instance of the Console Renderer
     SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
@@ -88,7 +93,54 @@ void SConsoleSelector::Write()
     Cursor->Write();
 }
 
-void SConsoleSelector::AddOption(const SWStringView& NewOption, const SCallback& Callback)
+void SAConsoleSelector::ClearBuffer()
+{
+    // Get the instance of the Console Renderer singleton
+    SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
+
+    // Iterate through all options and clear each one from the console buffer
+    SUInt8 Index = 0;
+    for (const auto& Element : Options)
+    {
+        // Clear the text at the specific grid position where the option was drawn
+        ConsoleRenderer->ClearBufferAt(SGridPositionU32(GridPosition.first, GridPosition.second + Index++), Element.first.size());
+    }
+
+    //Clear map
+    Options.clear();
+
+    //Destroy cursor
+    Cursor->ClearBuffer();
+    Cursor.reset();
+}
+
+void SAConsoleSelector::CopyFrom(const SAActor& Other)
+{
+    // Attempt to cast the base class reference to a SAConsoleSelector pointer
+    if (const SAConsoleSelector* OtherConsoleSelector = dynamic_cast<const SAConsoleSelector*>(&Other))
+    {
+        // Call the parent CopyFrom
+        SAActor::CopyFrom(Other);
+        
+        // Copy the list of selectable options from the source object
+        Options = OtherConsoleSelector->Options;
+
+        // Copy the currently selected index
+        CurrentIndex = OtherConsoleSelector->CurrentIndex;
+
+        // Copy the cursor position (used for navigating the options)
+        Cursor = OtherConsoleSelector->Cursor;
+
+        // Copy the string used to render the cursor
+        CursorString = OtherConsoleSelector->CursorString;
+    }
+    else
+    {
+        S_LOG_ERROR(LogTemp, TEXT("CopyFrom failed, Casted failed other isn't type of SAConsoleSelector."))
+    }
+}
+
+void SAConsoleSelector::AddOption(const SWStringView& NewOption, const SCallback& Callback)
 {
     // Insert the new option and its callback into the Options map
     Options.try_emplace(NewOption, Callback);
@@ -106,33 +158,27 @@ void SConsoleSelector::AddOption(const SWStringView& NewOption, const SCallback&
         if (SConsoleRenderer::GetInstance()->GetScreenWidth() >= CursorPositionX)
         {
             // Create the cursor instance with the specified string, color, and position
-            Cursor = std::make_unique<FSelectionCursor>(CursorString, FG_RED);
+            Cursor = std::make_shared<FSelectionCursor>(CursorString, FG_RED);
         }
     }
 }
 
-void SConsoleSelector::ClearBuffer()
+void SAConsoleSelector::SetNewCallback(const SWStringView& NewOption, const SCallback& Callback)
 {
-    // Get the instance of the Console Renderer singleton
-    SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
-    
-    // Iterate through all options and clear each one from the console buffer
-    SUInt8 Index = 0;
-    for (const auto& Element : Options)
+    // Try to find the option key in the map
+    auto It = Options.find(NewOption);
+    if (It != Options.end())
     {
-        // Clear the text at the specific grid position where the option was drawn
-        ConsoleRenderer->ClearBufferAt(SGridPositionU32(GridPosition.first, GridPosition.second + Index++), Element.first.size());
+        // If found, update the callback associated with this option
+        It->second = Callback;
     }
-
-    //Clear map
-    Options.clear();
-
-    //Destroy cursor
-    Cursor->ClearBuffer();
-    Cursor.reset();
+    else
+    {
+        S_LOG_WARNING(LogTemp, TEXT("We wanted to set new callback for a %s but this string doesn't exists in the Options map"), NewOption.data())
+    }
 }
 
-void SConsoleSelector::CreateCursor(const SGridPositionU32& GridPosition)
+void SAConsoleSelector::CreateCursor(const SGridPositionU32& GridPosition)
 {
     // Calculate the X position of the cursor (left of the options text)
     SUInt32 CursorPositionX = GridPosition.first - static_cast<SUInt32>(CursorString.size()) - 1;
@@ -141,11 +187,11 @@ void SConsoleSelector::CreateCursor(const SGridPositionU32& GridPosition)
     if (SConsoleRenderer::GetInstance()->GetScreenWidth() >= CursorPositionX)
     {
         // Create the cursor instance with the specified string, color, and position
-        Cursor = std::make_unique<FSelectionCursor>(CursorString, FG_RED);
+        Cursor = std::make_shared<FSelectionCursor>(CursorString, FG_RED);
     }
 }
 
-void SConsoleSelector::OnArrowUpPressed()
+void SAConsoleSelector::OnArrowUpPressed()
 {
     // Get maximum index (i.e. total number of options)
     const SUInt32 MaxIndex = static_cast<SUInt32>(Options.size());
@@ -154,13 +200,13 @@ void SConsoleSelector::OnArrowUpPressed()
     CurrentIndex = (CurrentIndex + MaxIndex - 1) % MaxIndex;
 }
 
-void SConsoleSelector::OnArrowDownPressed()
+void SAConsoleSelector::OnArrowDownPressed()
 {
     // Move selection down, wrapping to top if at bottom
     CurrentIndex = (CurrentIndex + 1) % static_cast<SUInt32>(Options.size());
 }
 
-void SConsoleSelector::OnEnterPressed()
+void SAConsoleSelector::OnEnterPressed()
 {
     // Get the iterator pointing to the currently selected option 
     auto Iterator = Options.begin();

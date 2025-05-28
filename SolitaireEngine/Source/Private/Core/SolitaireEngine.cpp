@@ -5,7 +5,7 @@
 #include "Inputs/ConsoleInputHandler.h"
 #include "Framework/World.h"
 
-SBool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
+SBool SSolitaireEngine::Initialize()
 {
     // Create necessary engine directories
     Core::Paths::CreateDirectories();
@@ -15,7 +15,7 @@ SBool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
 
     // Loads the config files from the disk
     SIniFileManager::GetInstance()->LoadConfigFilesFromDisk();
-    
+
     // Get the input system
     InputSystem = SInputSystem::GetInstance();
 
@@ -30,7 +30,7 @@ SBool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
     ConsoleInputHandler = SConsoleInputHandler::GetInstance();
 
     // Bind unique action to the Input System which allows us to come back to typing mode
-    StartTypingCallback = [this]() 
+    StartTypingCallback = [this]()
         {
             // Switch to typing mode — console now handles key input
             SetUseConsoleInputHandler(true);
@@ -47,25 +47,36 @@ SBool SSolitaireEngine::Initialize(SSharedPtr<SWorld> NewWorld)
     // Create Audio Engine
     AudioEngine = std::make_unique<SAudioEngine>();
 
-    // Set current world
-    SetCurrentWorld(NewWorld);
-
     // Log the engine initialization completed
     S_LOG(LogTemp, TEXT("Solitaire Engine initialization completed."));
-    
-    // Run Engine
-    Run();
 
     return true;
 }
 
 void SSolitaireEngine::SetCurrentWorld(SSharedPtr<SWorld> NewWorld)
 {
+    // If we are not in the middle of a copy operation (i.e. both CurrentWorld and NewWorld are valid but different),
+    // we can safely assign the world pointer to all actors.
+    // During a deep copy of the world, assigning the world inside actor constructors is unsafe,
+    // so we defer it until this point.
+    SBool bSetWorld = CurrentWorld != nullptr && NewWorld != nullptr;
+
     //Set current world
     CurrentWorld = NewWorld;
 
-    // Initialize world
-    CurrentWorld->Initialize();
+    // Check if we can assing CurrentWorld
+    if (bSetWorld)
+    {
+        // Iterate throught the actors
+        for (auto& Actor : CurrentWorld->Actors)
+        {
+            // Set Current World
+            Actor->SetWorld(CurrentWorld);
+        }
+    }
+
+    // Rewrite the whole console to see the changes
+    SConsoleRenderer::GetInstance()->ClearBuffer();
 
     // Log
     S_LOG(LogSolitaireEngine, TEXT("New world has been set"));

@@ -1,13 +1,10 @@
 #include "SolitaireEnginePCH.h"
 #include "Core/Console.h"
 
-SBool SConsole::Initialize(SSharedPtr<SWorld> NewWorld)
+SBool SConsole::Initialize()
 {
 	// Bind ConsoleCtrlHandler
-    SetConsoleCtrlHandler(ConsoleCtrlHandler, TRUE);
-
-    // Initialize the Solitaire Engine
-    return GSolitaireEngine->Initialize(NewWorld);
+    return SetConsoleCtrlHandler(ConsoleCtrlHandler, TRUE);
 }
 
 void SConsole::ShutDown()

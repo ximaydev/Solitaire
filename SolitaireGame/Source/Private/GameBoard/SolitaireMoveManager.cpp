@@ -1,14 +1,61 @@
 #include "SolitaireGamePCH.h"
+#include "Utils/UndoManager.h"
 
-SSolitaireMoveManager::SSolitaireMoveManager(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, const SWString& TextToShow) 
-	: SAActor(NewGridPosition, NewWorld)
+SSolitaireMoveManager::SSolitaireMoveManager(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld) : SAActor(NewGridPosition, NewWorld) {}
+
+SSolitaireMoveManager::SSolitaireMoveManager(const SSolitaireMoveManager& Other)
 {
-	// Create Move Input Prompt
-	MoveInputPrompt = NewWorld->SpawnActor<SUniquePtr<SAConsolePrompt>, SAConsolePrompt>(NewGridPosition, NewWorld, FG_DARK_GRAY | SConsoleRenderer::GetInstance()->GetCurrentBackgroundColor(), TextToShow, std::bind(&SSolitaireMoveManager::OnEnterClicked, this, std::placeholders::_1));
+	// Call CopyFrom and perform a deep copy
+	CopyFrom(Other);
+}
+
+void SSolitaireMoveManager::Write()
+{
+	// Get Renderer
+	SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
+
+	// Format a wide string with a selected option
+	if(!SelectedOption.empty())
+		SelectedOptionString = std::format(TEXT("Selected Option:{}"), SelectedOption);
+	else
+		SelectedOptionString = TEXT("Selected Option: ");
+
+	// Write the formatted string
+	ConsoleRenderer->Write(GetGridPosition(), SelectedOptionString, static_cast<SUInt32>(SelectedOptionString.size()), true, FG_DARK_GRAY | ConsoleRenderer->GetCurrentBackgroundColor());
+}
+
+void SSolitaireMoveManager::ClearBuffer()
+{
+	// Clear the buffer
+	SConsoleRenderer::GetInstance()->ClearBufferAt(GetGridPosition(), SelectedOptionString.size());
+}
+
+void SSolitaireMoveManager::CopyFrom(const SAActor& Other)
+{
+	// Attempt to safely cast the 'Other' object to a pointer of type SSolitaireMoveManager
+	if (const SSolitaireMoveManager* OtherSolitaireMoveManager = dynamic_cast<const SSolitaireMoveManager*>(&Other))
+	{
+		// Call the parent CopyFrom
+		SAActor::CopyFrom(Other);
+
+		// Copy specific data members from the other SSolitaireMoveManager instance
+		SelectedOption = OtherSolitaireMoveManager->SelectedOption;
+		MoveCommand = OtherSolitaireMoveManager->MoveCommand;
+	}
+	else
+	{
+		S_LOG_ERROR(LogTemp, TEXT("CopyFrom failed, Casted failed other isn't type of SSolitaireMoveManager."))
+	}
 }
 
 void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 {
+	// Get world
+	SSharedPtr<SGameBoardWorld> GameBoardWorld = GetWorld<SGameBoardWorld>();
+
+	// Get Undo Manager
+	SUndoManager<SGameBoardWorld>* GameBoardWorld_UndoManager = SUndoManager<SGameBoardWorld>::GetInstance();
+
 	// Check if the user hasn't selected an option yet (first input step)
 	if (SelectedOption == TEXT(""))
 	{
@@ -44,11 +91,14 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 			return;
 		}
 
-		// Get world
-		SSharedPtr<SGameBoardWorld> GameBoardWorld = GetWorld<SGameBoardWorld>();
-
 		if (SelectedOption == TEXT("4"))
 		{
+			// Reset inputs
+			ResetInputs();
+
+			//Take snapshot of this world
+			GameBoardWorld_UndoManager->SaveSnapshot(*GameBoardWorld.get());
+
 			// Card pointers
 			SSharedPtr<SACard> Card1 = nullptr;
 			SSharedPtr<SACard> Card2 = nullptr;
@@ -56,12 +106,12 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 			SUInt32 Card1ColumnIndex = INDEX_NONE;
 
 			// Get the current waste pile cards
-			const SVector<SSharedPtr<SACard>>& WastePileCards = GameBoardWorld->GetStockPile()->GetWastePile()->GetCards();
+			const SVector<SSharedPtr<SACard>>& WastePileCards = GameBoardWorld->GetWastePile()->GetCards();
 
 			if (WastePileCards.empty())
 			{
 				S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Waste pile is empty - Card1 is nullptr"));
-				ResetInputs();
+				GameBoardWorld_UndoManager->RemoveLastSnapshot();
 				return;
 			}
 
@@ -74,26 +124,38 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 			if (GameBoardWorld->GetGameRules()->CanMoveWastePileToFoundationList(Card2, Card1))
 			{
 				// Use top card (remove from waste pile)
-				GameBoardWorld->GetStockPile()->GetWastePile()->UseTopCard();
+				GameBoardWorld->GetWastePile()->UseTopCard();
 
 				// Add Card1 to the foundation list at the specified column index
 				GameBoardWorld->GetFoundationList()->AddNewCardToFoundationList(Card2, Card1ColumnIndex);
 
 				// Increment move count and reset inputs
 				GameBoardWorld->IncrementMoveCount();
-				ResetInputs();
+			}
+			else
+			{
+				GameBoardWorld_UndoManager->RemoveLastSnapshot();
 			}
 		}
 		else if (SelectedOption == TEXT("5"))
 		{
+			// Reset inputs
+			ResetInputs();
+
+			//Take snapshot of this world
+			GameBoardWorld_UndoManager->SaveSnapshot(*GameBoardWorld.get());
+
 			// Use Stock Pile
-			GameBoardWorld->GetStockPile()->UseStockPile();
+			GameBoardWorld->GetWastePile()->MoveCardsToWastePile(GameBoardWorld->GetStockPile()->GetCards_Mutable());
 			
 			// Increment move count and reset inputs
 			GameBoardWorld->IncrementMoveCount();
+		}
+		else if (SelectedOption == TEXT("6"))
+		{
+			// Reset Inputs
 			ResetInputs();
 		}
-
 	}
 	else if (MoveCommand == TEXT("")) // If option was already selected, check if we're waiting for the move command (second input step)
 	{
@@ -103,8 +165,14 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 		// Change to upper
 		MoveCommand = SStringLibrary::ToUpper(MoveCommand);
 		
+		//Take snapshot of this world
+		GameBoardWorld_UndoManager->SaveSnapshot(*GameBoardWorld.get());
+
 		// Perform the actual card movement
-		ExecuteMoveCommand();
+		if (!ExecuteMoveCommand())
+		{
+			GameBoardWorld_UndoManager->RemoveLastSnapshot();
+		}
 	}
 	else // If both SelectedOption and MoveCommand are already set, but we still get input, log an warning
 	{
@@ -112,12 +180,11 @@ void SSolitaireMoveManager::OnEnterClicked(const SWString& Line)
 		S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Unexpected input: MoveCommand and SelectedOption are already set"));
 
 		// Reset 
-		MoveCommand = TEXT("");
-		SelectedOption = TEXT("");
+		ResetInputs();
 	}
 }
 
-void SSolitaireMoveManager::ExecuteMoveCommand()
+SBool SSolitaireMoveManager::ExecuteMoveCommand()
 {
 	// Get world
 	SSharedPtr<SGameBoardWorld> GameBoardWorld = GetWorld<SGameBoardWorld>();
@@ -163,52 +230,72 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 			// Log warning and reset input if either card was not found
 			S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Card1 is nullptr"));
 			ResetInputs();
-			return;
+			return false;
 		}
 
-		// Check if the move is valid according to game rules and cards are in different columns
-		if (GameBoardWorld->GetGameRules()->CanMoveBoardToBoard(Card1, Card2) && Card1ColumnIndex != Card2ColumnIndex)
+		// Check if Card1 is a king; if so, perform a special move to a new column,
+		// otherwise attempt a normal move of the card chain onto Card2 in a different column
+		SBool IsKingCard1 = Card1 ? Card1->GetCardInfo().GetCardRank() == ECardRank::King : false;
+		if (GameBoardWorld->GetGameRules()->CanMoveBoardToBoard(Card1, Card2, IsKingCard1) && Card1ColumnIndex != Card2ColumnIndex)
 		{
 			// Build a chain of linked cards starting from Card1
 			SVector<SSharedPtr<SACard>> Chain = BuildCardChain(Card1);
 
-			// Check if the Card1 is king and Card2 is empty (contain information about column)
-			if (!Card2)
+			// Parse the target column number from the token and clamp it to valid range [1,7], then convert to 0-based index
+			SUInt32 ColumnNum = SStringLibrary::Convert<SUInt32>(Token2);
+			ColumnNum = std::clamp<SUInt32>(ColumnNum, 1, 7) - 1;
+
+			// Remove the chain of cards from its original location in the tableau
+			RemoveCardChainFromTableau(Cards, Card1ColumnIndex, Card1CardIndex, static_cast<SUInt32>(Chain.size()));
+
+			// Reposition the first card in the chain according to the target column's grid position
+			const SGridPositionU32& TableauGridPositon = GameBoardWorld->GetTableau()->GetGridPosition();
+			
+			// Start new row position for the first card in the chain (3 rows below the card above).
+			SUInt32 Row = TableauGridPositon.second;
+			for (SUInt32 Index = 0; Index < Chain.size(); Index++)
 			{
-				// Parse the target column number from the token and clamp it to valid range [1,7], then convert to 0-based index
-				SUInt32 ColumnNum = SStringLibrary::Convert<SUInt32>(Token2);
-				ColumnNum = std::clamp<SUInt32>(ColumnNum, 1, 7) - 1;
+				// Clear any buffered state of the card before re-linking.
+				Chain[Index]->ClearBuffer();
 
-				// Remove the chain of cards from its original location in the tableau
-				RemoveCardChainFromTableau(Cards, Card1ColumnIndex, Card1CardIndex, static_cast<SUInt32>(Chain.size()));
+				// Set the current card as the next card of the previous one.
+				Chain[Index]->SetGridPosition(SGridPositionU32(TableauGridPositon.first + (ColumnNum * 8), Row));
 
-				// Reposition the first card in the chain according to the target column's grid position
-				const SGridPositionU32& TableauGridPositon = GameBoardWorld->GetTableau()->GetGridPosition();
-				Card1->ClearBuffer();
-				Card1->SetGridPosition(SGridPositionU32(TableauGridPositon.first + (ColumnNum * 8), TableauGridPositon.second));
-
-				// Insert the entire card chain at the beginning of the new column in the tableau
-				Cards[ColumnNum].insert(Cards[ColumnNum].begin(), Chain.begin(), Chain.end());
+				// Each card goes 3 rows below the previous one.
+				Row += 3;
 			}
-			else
-			{
-				// Attach the entire card chain below Card2, updating positions and links accordingly
-				AttachCardChainBelowCard(Chain, Card2);
 
-				// Remove the card chain from its original position in the tableau
-				RemoveCardChainFromTableau(Cards, Card1ColumnIndex, Card1CardIndex, static_cast<SUInt32>(Chain.size()));
+			// Insert the entire card chain at the beginning of the new column in the tableau
+			Cards[ColumnNum].insert(Cards[ColumnNum].begin(), Chain.begin(), Chain.end());
 
-				// Insert the card chain into the tableau after Card2's position
-				InsertCardChainInTableau(Cards, Card2ColumnIndex, Card2CardIndex, Chain);
-			}
-				// Reveal Card
-				if (Cards[Card1ColumnIndex].size() > 0)
-					Cards[Card1ColumnIndex].back()->SetIsFaceUp(true);
+			// Reveal Card
+			if (Cards[Card1ColumnIndex].size() > 0)
+				Cards[Card1ColumnIndex].back()->SetIsFaceUp(true);
+		}
+		else if (GameBoardWorld->GetGameRules()->CanMoveBoardToBoard(Card1, Card2) && Card1ColumnIndex != Card2ColumnIndex)
+		{
+			// Build a chain of linked cards starting from Card1
+			SVector<SSharedPtr<SACard>> Chain = BuildCardChain(Card1);
+
+			// Attach the entire card chain below Card2, updating positions and links accordingly
+			AttachCardChainBelowCard(Chain, Card2);
+
+			// Remove the card chain from its original position in the tableau
+			RemoveCardChainFromTableau(Cards, Card1ColumnIndex, Card1CardIndex, static_cast<SUInt32>(Chain.size()));
+
+			// Insert the card chain into the tableau after Card2's position
+			InsertCardChainInTableau(Cards, Card2ColumnIndex, Card2CardIndex, Chain);
+
+			// Reveal Card
+			if (Cards[Card1ColumnIndex].size() > 0)
+				Cards[Card1ColumnIndex].back()->SetIsFaceUp(true);
 		}
 		else
 		{
 			// Log
 			S_LOG(LogSolitaireMoveManager, TEXT("Move rejected: Card1 can't be placed on Card2 due to game rules"));
+			ResetInputs();
+			return false;
 		}
 	}
 	else if (SelectedOption == TEXT("2"))
@@ -224,7 +311,7 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 
 			// Reset any inputs or state related to the card selection
 			ResetInputs();
-			return;
+			return false;
 		}
 		
 		// Try to find the card in the foundation list using its rank and suit.
@@ -250,18 +337,25 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 			if (Cards[Card1ColumnIndex].size() > 0)
 				Cards[Card1ColumnIndex].back()->SetIsFaceUp(true);
 		}
+		else
+		{
+			// Log
+			S_LOG(LogSolitaireMoveManager, TEXT("Move rejected: Card1 can't be moved to the foundation list due to game rules"));
+			ResetInputs();
+			return false;
+		}
 
 	}
 	else if (SelectedOption == TEXT("3"))
 	{
 		// Get the current waste pile cards
-		const SVector<SSharedPtr<SACard>>& WastePileCards = GameBoardWorld->GetStockPile()->GetWastePile()->GetCards();
+		const SVector<SSharedPtr<SACard>>& WastePileCards = GameBoardWorld->GetWastePile()->GetCards();
 
 		if (WastePileCards.empty())
 		{
 			S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Waste pile is empty - Card1 is nullptr"));
 			ResetInputs();
-			return;
+			return false;
 		}
 
 		// Get the top card from the waste pile
@@ -277,21 +371,25 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 			SUInt32 ColumnNum = SStringLibrary::Convert<SUInt32>(Token1);
 			ColumnNum = std::clamp(ColumnNum, 1U, 7U) - 1;
 
-			// Use top card (remove from waste pile)
-			GameBoardWorld->GetStockPile()->GetWastePile()->UseTopCard();
+			// Check if the column is empty
+			if(GameBoardWorld->GetTableau()->GetCards()[ColumnNum].size() == 0)
+			{
+				// Use top card (remove from waste pile)
+				GameBoardWorld->GetWastePile()->UseTopCard();
 
-			// Set the card's new grid position on an empty slot
-			const SGridPositionU32& TableauGridPosition = GameBoardWorld->GetTableau()->GetGridPosition();
-			Card1->SetGridPosition(SGridPositionU32(TableauGridPosition.first + (ColumnNum * 8), TableauGridPosition.second));
+				// Set the card's new grid position on an empty slot
+				const SGridPositionU32& TableauGridPosition = GameBoardWorld->GetTableau()->GetGridPosition();
+				Card1->SetGridPosition(SGridPositionU32(TableauGridPosition.first + (ColumnNum * 8), TableauGridPosition.second));
 
-			// Place the King card into the appropriate tableau column
-			Cards[ColumnNum].push_back(Card1);
+				// Place the King card into the appropriate tableau column
+				Cards[ColumnNum].push_back(Card1);
 
-			// Increment move count and reset inputs
-			GameBoardWorld->IncrementMoveCount();
-			ResetInputs();
+				// Increment move count and reset inputs
+				GameBoardWorld->IncrementMoveCount();
+				ResetInputs();
 
-			return;
+				return true;
+			}
 		}
 
 		// If Card1 was not found in the tableau and it's not a King, exit
@@ -299,14 +397,14 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 		{
 			S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Card1 not found in tableau"));
 			ResetInputs();
-			return;
+			return false;
 		}
 
 		// If the move from the waste pile to the tableau is valid, perform it
 		if (GameBoardWorld->GetGameRules()->CanMoveWastePileToBoard(Card1, Card2))
 		{
 			// Use top card (remove from waste pile)
-			GameBoardWorld->GetStockPile()->GetWastePile()->UseTopCard();
+			GameBoardWorld->GetWastePile()->UseTopCard();
 
 			// Set Next Card
 			const SGridPositionU32& Card2GridPosition = Card2->GetGridPosition();
@@ -319,11 +417,14 @@ void SSolitaireMoveManager::ExecuteMoveCommand()
 	else
 	{
 		S_LOG_WARNING(LogSolitaireMoveManager, TEXT("Unknown command: %s"), SelectedOption.data());
+		ResetInputs();
+		return false;
 	}
 
 	// Reset inputs and increase move counter
 	GameBoardWorld->IncrementMoveCount();
 	ResetInputs();
+	return true;
 }
 
 void SSolitaireMoveManager::ResetInputs()
@@ -380,6 +481,10 @@ void SSolitaireMoveManager::ParseMoveCommand(const SWString& MoveCommand, SWStri
 
 bool SSolitaireMoveManager::FindCardInTableau(const SATableau::TableauArray& Cards, ECardRank Rank, ECardSuit Suit, SSharedPtr<SACard>& OutCard, SUInt32& OutCardIndex, SUInt32& OutColumnIndex)
 {
+	// Leave earlier if rank or suit is invalid
+	if (Rank == ECardRank::None || Suit == ECardSuit::None)
+		return false;
+
 	// Loop through each column in the tableau.
 	for (SUInt32 ColumnIndex = 0; ColumnIndex < Cards.size(); ColumnIndex++)
 	{

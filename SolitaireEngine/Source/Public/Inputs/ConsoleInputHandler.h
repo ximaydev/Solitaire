@@ -21,6 +21,9 @@ public:
     /** Get Currente Line */
     inline const SWString& GetCurrentLine() const { return CurrentLine; }
 
+    /** Set ConsoleLineCommited */
+    inline void SetConsoleLineCommited(SConsoleLineCommitted NewConsoleLineCommited) { ConsoleLineCommited = NewConsoleLineCommited; }
+
     /** Renders the line at its internal grid position. */
     virtual void Write() override;
 

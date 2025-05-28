@@ -15,6 +15,18 @@ public:
 
     /** Constructor */
     SAFoundationList(SSharedPtr<SWorld> NewWorld, const SGridPositionU32& NewGridPosition);
+    SAFoundationList(const SAFoundationList& Other);
+
+    /** Operators */
+    SAFoundationList operator=(const SAFoundationList& Other)
+    {
+        if (this != &Other)
+        {
+            // Call CopyFrom and perform a deep copy
+            CopyFrom(Other);
+        }
+        return *this;
+    }
 
     /** Get Cards */
     inline const FoundationPilesArray& GetCards() const { return FoundationList; }
@@ -28,6 +40,11 @@ public:
     /** Clears the Foundation List from the console. */
     void ClearBuffer() override;
 
+    /** Performs a deep copy of all owned data from 'other' into this object. */
+    void CopyFrom(const SAActor& Other) override;
+
+    /** Performs a deep copy of the current object using the copy constructor. */
+    virtual SSharedPtr<SAActor> Clone() const override { return SSharedPtr<SAActor>(new SAFoundationList(*this)); }
 protected:
     /** Array of 4 Foundation columns */
     FoundationPilesArray FoundationList;

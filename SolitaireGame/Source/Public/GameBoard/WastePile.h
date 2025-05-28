@@ -10,6 +10,18 @@ class SAWastePile final : public SAActor
 public:
 	/** Constructor */
 	SAWastePile(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld);
+	SAWastePile(const SAWastePile& Other);
+
+	/** Operators */
+	SAWastePile operator=(const SAWastePile& Other)
+	{
+		if (this != &Other)
+		{
+			// Call CopyFrom and perform a deep copy
+			CopyFrom(Other);
+		}
+		return *this;
+	}
 
 	/** Get Cards */
 	inline const SVector<SSharedPtr<SACard>>& GetCards() const { return Cards; }
@@ -19,6 +31,12 @@ public:
 
 	/** Renders the Waste sPile. */
 	void Write() override;
+
+	/** Performs a deep copy of all owned data from 'other' into this object. */
+	void CopyFrom(const SAActor& Other) override;
+
+	/** Performs a deep copy of the current object using the copy constructor. */
+	virtual SSharedPtr<SAActor> Clone() const override { return SSharedPtr<SAActor>(new SAWastePile(*this)); }
 
 	/** Use the top card in the pile (the first card in the vector). */
 	SSharedPtr<SACard> UseTopCard();

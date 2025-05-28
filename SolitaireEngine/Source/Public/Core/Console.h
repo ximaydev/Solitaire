@@ -6,7 +6,7 @@ class SOLITAIRE_ENGINE_API SConsole
 {
 public:
 	/** This function sets up the console. Must be called once before using any console-related features. */
-	virtual SBool Initialize(SSharedPtr<SWorld> NewWorld);
+	virtual SBool Initialize();
 
 	/** Cleans up any allocated resources or state related to the console. Should be called before application exits or when console is no longer needed. */
 	virtual void ShutDown();

@@ -72,3 +72,22 @@ extern SOLITAIRE_ENGINE_API SUniquePtr<SConsole> GConsole;
 
 /** Global unique pointer instance managing the Solitaire Engine. */
 extern SOLITAIRE_ENGINE_API SUniquePtr<SSolitaireEngine> GSolitaireEngine;
+
+/** Attempts to promote a weak pointer to a shared pointer. */
+template<typename T>
+inline SSharedPtr<T> WeakToSharedPtr(const SWeakPtr<T>& WeakPtr)
+{
+	return !WeakPtr.expired() ? WeakPtr.lock() : nullptr;
+}
+
+/** Template base class that enables the CopyFrom functionality. */
+template<typename T>
+class SOLITAIRE_ENGINE_API SEnable_CopyFrom
+{
+protected:
+	/** Pure virtual method to copy data from another object of type T. */
+	virtual void CopyFrom(const T& Other) = 0;
+
+	// Virtual clone method returns pointer to the copy
+	virtual SSharedPtr<T> Clone() const { return nullptr; };
+};

@@ -3,11 +3,15 @@
 
 int main()
 {
-    // Create World
-    SSharedPtr<SWorld> World = std::make_shared<SGameBoardWorld>();
-
     // Initialzie Console
-    GConsole->Initialize(World);
+    GConsole->Initialize();
+
+    // Initialize Engine
+    if(GSolitaireEngine->Initialize())
+    {
+        // Create World
+        GSolitaireEngine->CreateInitialMap<SGameBoardWorld>();
+    }
 
     // This code runs when the player exits the game via the in-game menu (not by clicking the X button).
     // We manually call ConsoleCtrlHandler to simulate the same shutdown behavior as a forced window close.

@@ -2,6 +2,12 @@
 
 SAWastePile::SAWastePile(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld) : SAActor(NewGridPosition, NewWorld) {}
 
+SAWastePile::SAWastePile(const SAWastePile& Other)
+{
+	// Call CopyFrom and perform a deep copy
+	CopyFrom(Other);
+}
+
 void SAWastePile::Write()
 {
 	// Check if there is at least one card in the pile
@@ -12,6 +18,37 @@ void SAWastePile::Write()
 		{
 			Card->Write();
 		}
+	}
+}
+
+void SAWastePile::CopyFrom(const SAActor& Other)
+{
+	// Attempt to cast the base class reference to a SAWastePile pointer
+	if (const SAWastePile* OtherWastePile = dynamic_cast<const SAWastePile*>(&Other))
+	{
+		// Call the parent CopyFrom
+		SAActor::CopyFrom(Other);
+
+		// Copy the count of revealed cards from the other WastePile instance
+		RevealedCardCount = OtherWastePile->RevealedCardCount;
+
+		// Clear current Cards container to prepare for copying new cards
+		Cards.clear();
+
+		// Reserve memory upfront to avoid reallocations during copying
+		Cards.reserve(OtherWastePile->Cards.size());
+
+		// Deep copy each card from the other WastePile's Cards vector
+		for (const auto& Card : OtherWastePile->Cards)
+		{
+			// Create a new shared pointer with a copy of the card and move it into this container
+			Cards.push_back(std::move(std::make_shared<SACard>(*Card)));
+		}
+
+	}
+	else
+	{
+		S_LOG_ERROR(LogTemp, TEXT("CopyFrom failed, Casted failed other isn't type of SAWastePile."))
 	}
 }
 
@@ -29,8 +66,6 @@ SSharedPtr<SACard> SAWastePile::UseTopCard()
 
 	// Remove the last card from the vector (the one we just took)
 	Cards.pop_back();
-
-	//TODO Przetasowac je¿eli Cards jest juz pusty
 	
 	// Return the card that was removed
 	return TopCard;
@@ -61,7 +96,7 @@ void SAWastePile::MoveCardsToWastePile(SVector<SSharedPtr<SACard>>& StockPileCar
 	Cards.clear();
 
 	// Get CardsToRevealPerStockUse
-	SUInt32 Amount = GetWorld<SGameBoardWorld>()->GetGameRules()->CardsToRevealPerStockUse;
+	SUInt32 Amount = GetWorld<SGameBoardWorld>()->GetGameRules()->GetCardsToRevealPerStockUse();
 
 	// Move the last 'Amount' cards from the stock pile to the waste pile (to the front)
 	auto MoveStartIterator = StockPileCards.end() - Amount;

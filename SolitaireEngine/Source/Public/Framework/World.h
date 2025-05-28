@@ -6,22 +6,45 @@
 class SAActor;
 
 /** Base class representing a game world. */
-class SOLITAIRE_ENGINE_API SWorld : public SIConsoleRenderable, public std::enable_shared_from_this<SWorld>
+class SOLITAIRE_ENGINE_API SWorld : public SIConsoleRenderable, public std::enable_shared_from_this<SWorld>, public SEnable_CopyFrom<SWorld>
 {
 	friend class SSolitaireEngine;
 
 public:
+	/** Constructors */
+	SWorld() = default;
+	SWorld(const SWorld& Other);
+
+	/** Operators */
+	SWorld operator=(const SWorld& Other)
+	{
+		// Prevent self-assignment which could lead to logical errors or resource leaks
+		if (this != &Other)
+		{
+			// Call CopyFrom and perform a deep copy
+			CopyFrom(Other);
+		}
+
+		// Return reference to the current object
+		return *this;
+	}
+
 	/** Get this world as shared ptr */
 	template<typename WorldType = SWorld>
 	inline SSharedPtr<WorldType> AsShared() { return std::static_pointer_cast<WorldType>(shared_from_this()); }
 
-	/** Add the actor to the Actors */
-	void RegisterActor(SSharedPtr<SAActor> Actor);
-	void RegisterActor(SAActor* Actor);
+	/** Get Actors */
+	inline const SVector<SSharedPtr<SAActor>>& GetActors() const { return Actors; }
 
 	/** Spawn an actor. */
-	template <typename PtrType, typename T, typename... Args>
-	PtrType SpawnActor(Args&&... args);
+	template <typename T, typename... Args>
+	SSharedPtr<T> SpawnActor(Args&&... args);
+
+	/** Performs a deep copy of all owned data from 'other' into this object. */
+	virtual void CopyFrom(const SWorld& Other) override;
+
+	/** Performs a deep copy of the current object using the copy constructor. */
+	virtual SSharedPtr<SWorld> Clone() const override { return SSharedPtr<SWorld>(new SWorld(*this)); }
 
 protected:
 	/** Called once when the world is created */
@@ -37,18 +60,20 @@ protected:
 	virtual void ClearBuffer() override;
 
 	/** List of all actors in this world */
-	SVector<SAActor*> Actors;
+	SVector<SSharedPtr<SAActor>> Actors;
 };
 
-template <typename PtrType, typename T, typename... Args>
-PtrType SWorld::SpawnActor(Args&&... args)
+template <typename T, typename... Args>
+SSharedPtr<T> SWorld::SpawnActor(Args&&... args)
 {
-	// Create a new actor instance wrapped in PtrType using raw pointer constructor
-	PtrType Actor = PtrType(new T(std::forward<Args>(args)...));
+	static_assert(std::is_base_of_v<SAActor, T>, "T must derive from SAActor");
 
-	// Store raw pointer in internal Actors container for lifetime management
-	RegisterActor(Actor.get());
+	// Create a shared_ptr with unique ownership in this container
+	SSharedPtr<T> NewActor = std::make_shared<T>(std::forward<Args>(args)...);
 
-	// Return the smart pointer to the caller
-	return Actor;
+	// Store pointer in internal Actors container for lifetime management
+	Actors.push_back(NewActor);
+
+	// Return non-owning weak reference to the caller
+	return NewActor;
 }

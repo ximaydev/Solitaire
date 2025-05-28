@@ -95,6 +95,7 @@ struct FCardInfo
 {
 public:
     /** Constructors */
+    FCardInfo() = default;
     FCardInfo(ECardRank InRank, ECardSuit InSuit, SBool bIsFaceUp) : CardRank(InRank), CardSuit(InSuit), IsFaceUp(bIsFaceUp) { SetCardColor(); }
 
     /** Get CardRank */
@@ -105,6 +106,15 @@ public:
 
     /** Get Color */
     inline WORD GetColor() const { return Color; }
+
+    /** Set CardRank */
+    inline void SetCardRank(ECardRank NewCardRank) { CardRank = NewCardRank; }
+
+    /** Set CardSuit */
+    inline void SetCardSuit(ECardSuit NewCardSuit) { CardSuit = NewCardSuit; }
+
+    /** Set Color */
+    inline void SetColor(WORD NewColor) { Color = NewColor; }
 
     /** Card Sizes */
     const SUInt32 CardSizeX = 7;
@@ -132,7 +142,20 @@ class SACard final : public SAActor
 {
 public:
 	/** Constructors */
+    SACard() = default;
 	SACard(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, const FCardInfo& NewCardInfo);
+    SACard(const SACard& Other);
+
+    /** Operators */
+    SACard operator=(const SACard& Other)
+    {
+        if (this != &Other)
+        {
+            // Call CopyFrom and perform a deep copy
+            CopyFrom(Other);
+        }
+        return *this;
+    }
 
     /** Renders the card at a specified grid position. */
     void Write() override;
@@ -140,14 +163,17 @@ public:
     /** Clears the card from the console using its internal grid position. */
     void ClearBuffer() override;
 
+    /** Performs a deep copy of all owned data from 'other' into this object. */
+    virtual void CopyFrom(const SAActor& Other) override;
+
+    /** Performs a deep copy of the current object using the copy constructor. */
+    virtual SSharedPtr<SAActor> Clone() const override { return SSharedPtr<SAActor>(new SACard(*this)); }
+
     /** Get Card Info */
     FCardInfo& GetCardInfo_Mutable() { return CardInfo; }
 
     /** Get Card Info */
     const FCardInfo& GetCardInfo() const { return CardInfo; }
-
-    /** Determines if this card can be placed on another card in the tableau. */
-    SBool CanBePlacedOnTableau(const FCardInfo& Other) const;
 
     /** Sets the next card in a sequence and updates its grid position. */
     void SetNextCard(const SGridPositionU32& NextCardGridPosition, SSharedPtr<SACard> NewNextCard);
@@ -160,15 +186,6 @@ public:
 
     /** Checks if both cards has the same color of the card. */
     inline SBool HasSameColor(const FCardInfo& Other) const { return CardInfo.GetColor() == Other.GetColor(); }
-
-    /** Determines if this card can be placed on the given foundation stack card. */
-    SBool CanBePlacedOnFoundation(const FCardInfo& Other) const;
-
-    /** Returns true if the card can be placed on an empty tableau column (only Kings). */
-    inline SBool CanBePlacedOnEmptyTableau() const { return CardInfo.GetCardRank() == ECardRank::King; }
-
-    /** Returns true if this card can start a foundation pile (only Aces). */
-    inline SBool IsFoundationBaseCard() const { return CardInfo.GetCardRank() == ECardRank::Ace; }
 
     /** Sets whether the card is face up or face down. Automatically updates the card visuals. */
     void SetIsFaceUp(SBool bNewIsFaceUp);

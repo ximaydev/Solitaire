@@ -13,8 +13,21 @@ public:
 
     using TableauArray = SArray<SVector<SSharedPtr<SACard>>, ColumnCount>;
 
-	/** Constructor */
+	/** Constructors */
 	SATableau(const SGridPositionU32& NewGridPosition, SSharedPtr<SWorld> NewWorld, SVector<SSharedPtr<SACard>>&& NewCards);
+    SATableau(const SATableau& Other);
+
+    /** Operators */
+    SATableau operator=(const SATableau& Other)
+    {
+        if (this != &Other)
+        {
+            // Call CopyFrom and perform a deep copy
+            CopyFrom(Other);
+        }
+
+        return *this;
+    }
 
     /** Get Cards */
     inline const TableauArray& GetCards() const { return Cards; }
@@ -24,6 +37,12 @@ public:
 
     /** Clears the tableau from the console buffer */
     void ClearBuffer() override;
+
+    /** Performs a deep copy of all owned data from 'other' into this object. */
+    virtual void CopyFrom(const SAActor& Other);
+
+    /** Performs a deep copy of the current object using the copy constructor. */
+    virtual SSharedPtr<SAActor> Clone() const override { return SSharedPtr<SAActor>(new SATableau(*this)); }
 
 protected:
     /** Generates the card columns */
