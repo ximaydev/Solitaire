@@ -4,6 +4,9 @@
 class SMainMenuWorld : public SWorld
 {
 public:
+	/** Constructor */
+	SMainMenuWorld();
+
 	/** Initializes the Main Menu World, preparing all necessary components. */
 	virtual SBool Initialize() override;
 

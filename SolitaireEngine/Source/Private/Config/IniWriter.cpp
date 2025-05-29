@@ -4,7 +4,7 @@
 SIniWriter::SIniWriter(const SWString& FileName)
 {
     // Open the file for writing, with appending mode
-    IniFileWriter.open(Core::Paths::GetProjectConfigPath() + FileName, std::ios::out | std::ios::ate);
+    IniFileWriter.open(Core::Paths::GetProjectConfigPath() + FileName, std::ios::out | std::ios::app);
 
     // Check if the file was successfully opened
     if (!IniFileWriter.is_open())

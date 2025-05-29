@@ -34,7 +34,7 @@ SBool SSolitaireEngine::Initialize()
     StartTypingCallback = [this]()
         {
             // Switch to typing mode — console now handles key input
-            SetUseConsoleInputHandler(true);
+            SetUseConsoleInputHandler(true && CurrentWorld->GetAllowUseHome());
 
             // Clear any leftover events in the console buffer
             FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));

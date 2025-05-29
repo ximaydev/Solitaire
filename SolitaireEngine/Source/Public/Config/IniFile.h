@@ -7,14 +7,18 @@ class SOLITAIRE_ENGINE_API SIniFile
     friend class SIniFileManager;
 
 public:
+    /** Get ConfigFileMap */
+    inline SIniConfigMap& GetConfigFileMap_Mutable() { return ConfigFileMap; }
+
 	/** Get typed value from the configuration map using a section name and key name. */
 	template<typename T>
 	T GetValueFromKey(const SWString& SectionName, const SWString& KeyName) const;
 
-#if DEBUG
-    /** This function prints out the loaded.ini file's contents */
-    void PrintLoadedFile() const;
-#endif
+    /** Get all section names from this INI file. */
+    void GetAllSections(SVector<SWString>& OutResult);
+
+    /** Return the last section in the map */
+    void GetLastSection(SWString& OutResult);
 
 protected:
 	/** Holds the contents of the INI file as a two-level map: Section -> (Key -> Value). */

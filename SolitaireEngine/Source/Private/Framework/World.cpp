@@ -2,6 +2,8 @@
 #include "Framework/World.h"
 #include "Framework/Actor.h"
 
+SWorld::SWorld(SBool NewAllowUseHome) : AllowUseHome(NewAllowUseHome) {}
+
 SWorld::SWorld(const SWorld& Other)
 {
 	// Call CopyFrom and perform a deep copy

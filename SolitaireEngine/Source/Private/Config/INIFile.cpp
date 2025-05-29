@@ -1,21 +1,48 @@
 #include "SolitaireEnginePCH.h"
 #include "Config/IniFile.h"
 
-#if DEBUG
-void SIniFile::PrintLoadedFile() const
+void SIniFile::GetAllSections(SVector<SWString>& OutResult)
 {
-    // Iterate through each section in the ConfigFileMap
+    // Clear the output vector to ensure it's empty before filling
+    OutResult.clear();
+
+    // Reserve memory to avoid unnecessary reallocations
+    OutResult.reserve(ConfigFileMap.size());
+
+    // Iterate over all sections and collect their names (keys)
     for (const auto& Section : ConfigFileMap)
     {
-        // Print the name of the section (e.g., [General], [Settings], etc.)
-        std::wcout << Section.first << TEXT('\n');
-
-        // Iterate through each key-value pair within the section
-        for (const auto& [Key, Value] : Section.second)
-        {
-            // Print the key and value in the format: key = value
-            std::wcout << TEXT("   ") << Key << TEXT(" = ") << Value << TEXT('\n');
-        }
+        OutResult.push_back(Section.first);
     }
 }
-#endif
+
+void SIniFile::GetLastSection(SWString& OutResult)
+{
+    SUInt32 maxIndex = 0;
+
+    // Assuming the key has the format "Score_<number>"
+    const SWString Prefix = TEXT("[Score_");  // Prefix including opening bracket
+
+    // Iterate through all keys in the configuration map
+    for (const auto& [key, value] : ConfigFileMap)
+    {
+        // Check if the current key starts with the expected prefix
+        if (key.compare(0, Prefix.size(), Prefix) == 0)
+        {
+            // Extract the numeric part after the prefix
+            SWString NumberPart = key.substr(Prefix.size());
+
+            // Convert the numeric substring to an integer
+            SUInt32 Index = SStringLibrary::Convert<SUInt32>(NumberPart);
+
+            // Update maxIndex if this index is greater than the current maximum
+            if (Index > maxIndex)
+            {
+                maxIndex = Index;
+            }
+        }
+    }
+
+    // Construct the name of the last section using the highest index found
+    OutResult = Prefix + std::to_wstring(maxIndex) + TEXT("]");
+}

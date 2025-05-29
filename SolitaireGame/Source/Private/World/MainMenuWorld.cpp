@@ -2,6 +2,9 @@
 #include "World/MainMenuWorld.h"
 #include "Framework/ConsoleSelector.h"
 #include "Core/Console.h"
+#include "Utils/ScoreManager.h"
+
+SMainMenuWorld::SMainMenuWorld() : SWorld(false) {}
 
 SBool SMainMenuWorld::Initialize()
 {
@@ -29,6 +32,9 @@ SBool SMainMenuWorld::Initialize()
 
 	// Spawn Console Selector
 	SpawnActor<SAConsoleSelector>(ConsoleSelectorActions, SGridPositionU32(PositionX + 8, PositionY * 2), AsShared());
+
+	// Spawn Score Manager
+	SpawnActor<SAScoreManager>(SGridPositionU32(5, 10), AsShared());
 
 	return true;
 }

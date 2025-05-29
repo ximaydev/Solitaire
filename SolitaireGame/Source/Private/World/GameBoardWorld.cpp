@@ -49,7 +49,7 @@ SBool SGameBoardWorld::Initialize()
     const SInitializerList<SPair<SWStringView, SCallback>> ConsoleSelectorActions =
     {
        { TEXT("Undo Move"), std::bind(&SGameBoardWorld::HandleUndoMove, this) },
-       { TEXT("New game"), std::bind(&SGameBoardWorld::HandleCreateNewMatch, this) },
+       { TEXT("New game"), std::bind(&SGameBoardWorld::HandlePlayerVictory, this) },
        { TEXT("Back to Main Menu"), std::bind(&SGameBoardWorld::HandleReturnToMainMenu, this) }
     };
 
@@ -166,7 +166,12 @@ void SGameBoardWorld::HandlePlayerVictory()
     SUndoManager<SGameBoardWorld>::GetInstance()->RemoveSnapshots();
 
     // Create the map which inform player that he won the game
-    GSolitaireEngine->CreateInitialMap<SVictoryWorld>(false);
+    // Set current world
+    SSharedPtr<SVictoryWorld> NewWorld = std::make_shared<SVictoryWorld>(MoveCount);
+    GSolitaireEngine->SetCurrentWorld(NewWorld);
+
+    // Initialize map
+    NewWorld->Initialize();
 }
 
 void SGameBoardWorld::HandleUndoMove()

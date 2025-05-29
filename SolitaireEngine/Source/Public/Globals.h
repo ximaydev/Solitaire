@@ -28,6 +28,10 @@ class SConsole;
 // Must always maintain a consistent name.
 #define DefaultAudioConfig  TEXT("DefaultAudio.ini")
 
+// Defines the name of the player scores file, located in the Config folder.
+// Must always maintain a consistent name.
+#define PlayerScoresConfig  TEXT("PlayerScores.ini")
+
 /** Represents an invalid or uninitialized index. Typically used to indicate that a valid index was not found. */
 SOLITAIRE_ENGINE_API const extern SUInt32 INDEX_NONE;
 

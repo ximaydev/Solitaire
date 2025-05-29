@@ -13,6 +13,7 @@ class SOLITAIRE_ENGINE_API SWorld : public SIConsoleRenderable, public std::enab
 public:
 	/** Constructors */
 	SWorld() = default;
+	SWorld(SBool NewAllowUseHome);
 	SWorld(const SWorld& Other);
 
 	/** Operators */
@@ -35,6 +36,9 @@ public:
 
 	/** Get Actors */
 	inline const SVector<SSharedPtr<SAActor>>& GetActors() const { return Actors; }
+
+	/** Get AllowUseHome */
+	inline SBool GetAllowUseHome() const { return AllowUseHome; }
 
 	/** Spawn an actor. */
 	template <typename T, typename... Args>
@@ -61,6 +65,9 @@ protected:
 
 	/** List of all actors in this world */
 	SVector<SSharedPtr<SAActor>> Actors;
+
+	/** Does the world allow to use HOME key */
+	SBool AllowUseHome = true;
 };
 
 template <typename T, typename... Args>
