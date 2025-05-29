@@ -28,6 +28,9 @@ public:
     /** Removes last taken snapshot */
     void RemoveLastSnapshot();
 
+    /** Removes the every snapshot */
+    void RemoveSnapshots();
+
     /** Returns true if undo is possible */
     inline SBool CanUndo() const { return !Snapshots.empty(); }
 
@@ -92,6 +95,12 @@ inline void SUndoManager<SnapshotType>::RemoveLastSnapshot()
 }
 
 template<typename SnapshotType>
+inline void SUndoManager<SnapshotType>::RemoveSnapshots()
+{
+    Snapshots.clear();
+}
+
+template<typename SnapshotType>
 inline SSharedPtr<SnapshotType> SUndoManager<SnapshotType>::Undo()
 {
     // Check if undo is possible
@@ -111,6 +120,9 @@ inline SSharedPtr<SnapshotType> SUndoManager<SnapshotType>::Undo()
             }
             else if (SAConsoleSelector* ConsoleSelector = dynamic_cast<SAConsoleSelector*>(Actor.get()))
             {
+                // Reinitialize to clear outdated input callbacks (e.g., from a previously removed ConsoleSelector)
+                ConsoleSelector->Initialize();
+
                 // If the actor is a console selector, bind the "Undo Move" option to the world's undo handler
                 ConsoleSelector->SetNewCallback(TEXT("Undo Move"), std::bind(&SGameBoardWorld::HandleUndoMove, LastSnapshot));
             }

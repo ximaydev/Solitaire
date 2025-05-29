@@ -53,7 +53,7 @@ public:
 
 	/** Creates initial map instance */
 	template<typename MapType>
-	inline void CreateInitialMap();
+	inline void CreateInitialMap(SBool bRunEngine = true);
 
 private:
 	/** Shuts down the engine and cleans up resources. */
@@ -94,7 +94,7 @@ private:
 };
 
 template<typename MapType>
-inline void SSolitaireEngine::CreateInitialMap()
+inline void SSolitaireEngine::CreateInitialMap(SBool bRunEngine)
 {
 	static_assert(std::is_base_of_v<SWorld, MapType>, "MapType must derive from SWorld");
 
@@ -106,5 +106,6 @@ inline void SSolitaireEngine::CreateInitialMap()
 	World->Initialize();
 
 	// Run Engine
-	Run();
+	if(bRunEngine)
+		Run();
 }

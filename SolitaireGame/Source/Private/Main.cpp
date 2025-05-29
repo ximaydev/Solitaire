@@ -1,5 +1,6 @@
 #include "SolitaireGamePCH.h"
 #include "Core/Console.h"
+#include "World/MainMenuWorld.h"
 
 int main()
 {
@@ -10,7 +11,7 @@ int main()
     if(GSolitaireEngine->Initialize())
     {
         // Create World
-        GSolitaireEngine->CreateInitialMap<SGameBoardWorld>();
+        GSolitaireEngine->CreateInitialMap<SMainMenuWorld>();
     }
 
     // This code runs when the player exits the game via the in-game menu (not by clicking the X button).

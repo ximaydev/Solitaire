@@ -76,6 +76,9 @@ public:
     /** Increments the move count. */
     inline void IncrementMoveCount() { MoveCount++; }
 
+    /** Handles game logic when the player wins the game. */
+    void HandlePlayerVictory();
+
 protected:
     /** Weak pointer to Tableau */
     SSharedPtr<SATableau> Tableau = {};
@@ -101,4 +104,10 @@ protected:
 private:
     /** Handler function triggered when the player requests to undo a move */
     void HandleUndoMove();
+
+    /** Handler function triggered when the player requests to create a new match */
+    void HandleCreateNewMatch();
+
+    // Handler function triggerred when the player requests to return to the main menu screen
+    void HandleReturnToMainMenu();
 };

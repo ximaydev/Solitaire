@@ -7,6 +7,8 @@
 #include "Framework/ConsoleSelector.h"
 #include "Utils/UndoManager.h"
 #include "GameBoard/Helpers/OperationsHelpActor.h"
+#include "World/VictoryWorld.h"
+#include "World/MainMenuWorld.h"
 
 SGameBoardWorld::SGameBoardWorld(const SGameBoardWorld& Other)
 {
@@ -46,7 +48,9 @@ SBool SGameBoardWorld::Initialize()
     // Define the initializer list with action name and callback
     const SInitializerList<SPair<SWStringView, SCallback>> ConsoleSelectorActions =
     {
-       { TEXT("Undo Move"), std::bind(&SGameBoardWorld::HandleUndoMove, this) }
+       { TEXT("Undo Move"), std::bind(&SGameBoardWorld::HandleUndoMove, this) },
+       { TEXT("New game"), std::bind(&SGameBoardWorld::HandleCreateNewMatch, this) },
+       { TEXT("Back to Main Menu"), std::bind(&SGameBoardWorld::HandleReturnToMainMenu, this) }
     };
 
     // Spawn the actor with the initializer list, position, and owner
@@ -156,6 +160,15 @@ void SGameBoardWorld::CopyFrom(const SWorld& Other)
     }
 }
 
+void SGameBoardWorld::HandlePlayerVictory()
+{
+    // Clear the every snapshot
+    SUndoManager<SGameBoardWorld>::GetInstance()->RemoveSnapshots();
+
+    // Create the map which inform player that he won the game
+    GSolitaireEngine->CreateInitialMap<SVictoryWorld>(false);
+}
+
 void SGameBoardWorld::HandleUndoMove()
 {
     // Undo Move
@@ -163,4 +176,19 @@ void SGameBoardWorld::HandleUndoMove()
     {
         GSolitaireEngine->SetCurrentWorld(std::move(OldGameBoardWorld));
     }
+}
+
+void SGameBoardWorld::HandleCreateNewMatch()
+{
+    // Clear the every snapshot
+    SUndoManager<SGameBoardWorld>::GetInstance()->RemoveSnapshots();
+
+    // Create new game
+    GSolitaireEngine->CreateInitialMap<SGameBoardWorld>(false);
+}
+
+void SGameBoardWorld::HandleReturnToMainMenu()
+{
+    // Create Main Menu Map
+    GSolitaireEngine->CreateInitialMap<SMainMenuWorld>(false);
 }

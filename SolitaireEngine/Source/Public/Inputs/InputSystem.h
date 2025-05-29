@@ -26,7 +26,7 @@ public:
 	/** Constructors */
 	FKeyBinding() = default;
 	FKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey);
-	FKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey, const SCallbackRecords& NewCallBack);
+	FKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey, const FCallbackRecord& NewCallBack);
 
 	/** Input action defined by the engine (e.g., MoveUp, Select) */
 	EKeyAction KeyAction = EKeyAction::Max;
@@ -35,7 +35,7 @@ public:
 	SUInt32 VirtualKey = {};
 
 	/** Callback function that is triggered when the key action is activated */
-	SCallbackRecords CallBacks;
+	FCallbackRecord CallBack;
 };
 
 /** Class responsible for handling input and mapping virtual key codes to game actions. */

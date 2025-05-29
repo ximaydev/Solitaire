@@ -1,6 +1,7 @@
 #include "SolitaireEnginePCH.h"
 #include "Rendering/ConsoleRenderer.h"
 #include "Config/IniFileManager.h"
+#include "Config/IniFile.h"
 #include "Inputs/InputSystem.h"
 #include "Inputs/ConsoleInputHandler.h"
 #include "Framework/World.h"
@@ -136,33 +137,40 @@ void SSolitaireEngine::Run()
     // Set the engine state to running
     IsRunning = true;
 
-    // Outside loop
-    auto LastFrameTime = std::chrono::high_resolution_clock::now();
-    SDouble FPS = 0.0;
+    // Get target frame time from config
+    const SDouble TargetFrameTime = 1.0 / SIniFileManager::GetInstance()->GetConfigFile(DefaultEngineConfig)->GetValueFromKey<SDouble>(TEXT("[Rendering]"), TEXT("FPS"));
 
-    // Inside main game loop
+    // Main game loop
     while (IsRunning)
     {
-        // Capture current time
-        auto Now = std::chrono::high_resolution_clock::now();
+        // Get time
+        auto FrameStart = std::chrono::high_resolution_clock::now();
 
-        // Calculate frame time in seconds (nanosecond precision)
-        auto Delta = std::chrono::duration<SDouble>(Now - LastFrameTime).count();
-        LastFrameTime = Now;
-
-        // Avoid division by zero
-        if (Delta > 0.0)
-        {
-            FPS = 1.0 / Delta;
-        }
-
-        // Display FPS
-        SWString FPSText = L"FPS: " + std::to_wstring(static_cast<int>(FPS));
-        SConsoleRenderer::GetInstance()->Write(SGridPositionU32(120, 15), FPSText, 10, true, FG_BLUE | BG_GREEN);
         // Process Input
         ProcessInput();
 
         // Render the frame
         Render();
+
+        auto FrameEnd = std::chrono::high_resolution_clock::now();
+        SDouble Elapsed = std::chrono::duration<SDouble>(FrameEnd - FrameStart).count();
+
+        // Sleep for the remaining frame time to cap FPS
+        SDouble TimeToWait = TargetFrameTime - Elapsed;
+        if (TimeToWait > 0.0)
+        {
+            std::this_thread::sleep_for(std::chrono::duration<SDouble>(TimeToWait));
+        }
+
+        #if DEBUG
+            // Calculate actual delta time after sleep
+            auto AfterSleep = std::chrono::high_resolution_clock::now();
+            SDouble Delta = std::chrono::duration<SDouble>(AfterSleep - FrameStart).count();
+            SDouble FPS = 1.0 / Delta;
+
+            // Display current FPS in the console
+            SWString FPSText = TEXT("FPS: ") + std::to_wstring(static_cast<SUInt32>(FPS));
+            SConsoleRenderer::GetInstance()->Write(SGridPositionU32(120, 15), FPSText, 10, true, FG_BLUE | BG_GREEN);
+        #endif 
     }
 }

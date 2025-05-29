@@ -43,6 +43,17 @@ bool SAFoundationList::AddNewCardToFoundationList(SSharedPtr<SACard> NewCard, SU
     // Push card to Cards
     Cards.push_back(NewCard);
 
+    // Check if the player has won by verifying that all four foundations contain 13 cards (full suit from Ace to King)
+    static constexpr SSize CardsPerFullFoundation = 13;
+    if (FoundationList[0].size() == CardsPerFullFoundation &&
+        FoundationList[1].size() == CardsPerFullFoundation &&
+        FoundationList[2].size() == CardsPerFullFoundation &&
+        FoundationList[3].size() == CardsPerFullFoundation)
+    {
+        GetWorld<SGameBoardWorld>()->HandlePlayerVictory();
+    }
+
+
     return false;
 }
 

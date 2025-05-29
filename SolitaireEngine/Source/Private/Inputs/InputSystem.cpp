@@ -3,8 +3,8 @@
 
 FKeyBinding::FKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey) : KeyAction(NewKeyAction), VirtualKey(NewVirtualKey) {}
 
-FKeyBinding::FKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey, const SCallbackRecords& NewCallBack) :
-	KeyAction(NewKeyAction), VirtualKey(NewVirtualKey), CallBacks(NewCallBack) {}
+FKeyBinding::FKeyBinding(EKeyAction NewKeyAction, SUInt32 NewVirtualKey, const FCallbackRecord& NewCallBack) :
+	KeyAction(NewKeyAction), VirtualKey(NewVirtualKey), CallBack(NewCallBack) {}
 
 SInputSystem* SInputSystem::GetInstance()
 {
@@ -46,7 +46,7 @@ SUInt64 SInputSystem::AddCallback(EKeyAction KeyAction, const SCallback& CallBac
         if (KeyBinding.KeyAction == KeyAction)
         {
             // Add the new callback to the list of callbacks for this key action
-            KeyBinding.CallBacks.push_back(FCallbackRecord(AssignedID, CallBack));
+            KeyBinding.CallBack = FCallbackRecord(AssignedID, CallBack);
             return AssignedID;
         }
     }
@@ -66,12 +66,8 @@ void SInputSystem::RemoveCallback(EKeyAction KeyAction, const SUInt64 CallbackID
             // Check if this binding matches the requested key action
             if (KeyBinding.KeyAction == KeyAction)
             {
-                // Erase the callback with the matching ID from the list
-                KeyBinding.CallBacks.erase(std::remove_if(KeyBinding.CallBacks.begin(), KeyBinding.CallBacks.end(), [CallbackID](const FCallbackRecord& Record)
-                    {
-                        return Record.ID == CallbackID;
-                    }),
-                    KeyBinding.CallBacks.end());
+                // Remove callback
+                KeyBinding.CallBack = FCallbackRecord();
             }
         }
     }
@@ -95,22 +91,15 @@ void SInputSystem::UpdateKeyStates()
         // If the key is pressed and was not pressed previously, trigger the callback
         if (IsCurrentlyPressed && !IsPressed(Binding.KeyAction))
         {
-            if (!Binding.CallBacks.empty())
+            if (Binding.CallBack.Callback)
             {
-                // Loop through and invoke each assigned callback function
-                for (auto& Callback : Binding.CallBacks)
-                {
-                    if (Callback.Callback)
-                    {
-                        // Execute the valid callback
-                        Callback.Callback();
-                    }
-                    else
-                    {
-                        // Log a warning if the callback is invalid (nullptr)
-                        S_LOG_WARNING(LogInputSystem, TEXT("Attempted to invoke an invalid callback function."));
-                    }
-                }
+                // Execute the valid callback
+                Binding.CallBack.Callback();
+            }
+            else
+            {
+                // Log a warning if the callback is invalid (nullptr)
+                S_LOG_WARNING(LogInputSystem, TEXT("Attempted to invoke an invalid callback function."));
             }
         }
 
