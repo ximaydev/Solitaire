@@ -51,6 +51,9 @@ SBool SSolitaireEngine::Initialize()
     // Log the engine initialization completed
     S_LOG(LogTemp, TEXT("Solitaire Engine initialization completed."));
 
+    // Play music
+    AudioEngine->PlaySound(Core::Paths::GetProjectContentPath() + TEXT("retro-game-arcade-236133.wav"), TEXT("Retro"), TEXT("MusicVolume"));
+
     return true;
 }
 
