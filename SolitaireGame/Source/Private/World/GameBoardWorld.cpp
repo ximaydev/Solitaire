@@ -49,22 +49,22 @@ SBool SGameBoardWorld::Initialize()
     const SInitializerList<SPair<SWStringView, SCallback>> ConsoleSelectorActions =
     {
        { TEXT("Undo Move"), std::bind(&SGameBoardWorld::HandleUndoMove, this) },
-       { TEXT("New game"), std::bind(&SGameBoardWorld::HandlePlayerVictory, this) },
+       { TEXT("New game"), std::bind(&SGameBoardWorld::HandleCreateNewMatch, this) },
        { TEXT("Back to Main Menu"), std::bind(&SGameBoardWorld::HandleReturnToMainMenu, this) }
     };
 
     // Spawn the actor with the initializer list, position, and owner
-    SpawnActor<SAConsoleSelector>(ConsoleSelectorActions, SGridPositionU32(30, 45), AsShared());
+    SpawnActor<SAConsoleSelector>(ConsoleSelectorActions, SGridPositionU32(100, 45), AsShared());
 
     // Spawn actor which displays the options for user
-    SpawnActor<SAOperationsHelpActor>(SGridPositionU32(65, 36), AsShared());
+    SpawnActor<SAOperationsHelpActor>(SGridPositionU32(100, 30), AsShared());
 
     // Create solitaire game rules
     GameRules = SpawnActor<SASolitaireRules>(AsShared());
 
     // Create Move Manager
-    MoveManager = SpawnActor<SSolitaireMoveManager>(SGridPositionU32(65, 43), AsShared());
-    SpawnActor<SAConsolePrompt>(SGridPositionU32(65, 42), AsShared(), FG_DARK_GRAY | SConsoleRenderer::GetInstance()->GetCurrentBackgroundColor(), TEXT("Choose an operation:"), std::bind(&SSolitaireMoveManager::OnEnterClicked, MoveManager, std::placeholders::_1));
+    MoveManager = SpawnActor<SSolitaireMoveManager>(SGridPositionU32(100, 41), AsShared());
+    SpawnActor<SAConsolePrompt>(SGridPositionU32(100, 40), AsShared(), FG_DARK_GRAY | SConsoleRenderer::GetInstance()->GetCurrentBackgroundColor(), TEXT("Choose an operation:"), std::bind(&SSolitaireMoveManager::OnEnterClicked, MoveManager, std::placeholders::_1));
 
     // Number of cards to assign to the tableau
     constexpr SUInt8 TableauCardNum = 28;
@@ -76,13 +76,13 @@ SBool SGameBoardWorld::Initialize()
     Cards.erase(Cards.begin(), Cards.begin() + TableauCardNum);
 
     // Create StockPile with the remaining cards
-    StockPile = SpawnActor<SAStockPile>(SGridPositionU32(100, 5), AsShared(), std::move(Cards));
+    StockPile = SpawnActor<SAStockPile>(SGridPositionU32(130, 5), AsShared(), std::move(Cards));
 
     // Create WastePile
     WastePile = SpawnActor<SAWastePile>(SGridPositionU32(StockPile->GetGridPosition().first + 10, StockPile->GetGridPosition().second), AsShared());
 
     // Create FoundationList
-    FoundationList = SpawnActor<SAFoundationList>(AsShared(), SGridPositionU32(100, 15));
+    FoundationList = SpawnActor<SAFoundationList>(AsShared(), SGridPositionU32(130, 15));
     
     // Log
     S_LOG(LogGameBoard, TEXT("GameBoardWorld initialized."));
@@ -101,7 +101,7 @@ void SGameBoardWorld::Write()
 
     // Format and render the move count string
     SWString MovesString = std::format(TEXT("Moves: {}"), MoveCount);
-    ConsoleRenderer->Write(SGridPositionU32(115, 45), MovesString, static_cast<SUInt32>(MovesString.size()), true, FG_BLUE | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(100, 42), MovesString, static_cast<SUInt32>(MovesString.size()), true, FG_BLUE | ConsoleRenderer->GetCurrentBackgroundColor());
 }
 
 void SGameBoardWorld::CopyFrom(const SWorld& Other)

@@ -27,12 +27,12 @@ void SAOperationsHelpActor::Write()
     SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
 
     // Write each help line to a fixed screen position
-    ConsoleRenderer->Write(SGridPositionU32(65, 36), Operations[0], static_cast<SUInt32>(Operations[0].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
-    ConsoleRenderer->Write(SGridPositionU32(65, 37), Operations[1], static_cast<SUInt32>(Operations[1].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
-    ConsoleRenderer->Write(SGridPositionU32(65, 38), Operations[2], static_cast<SUInt32>(Operations[2].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
-    ConsoleRenderer->Write(SGridPositionU32(65, 39), Operations[3], static_cast<SUInt32>(Operations[3].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
-    ConsoleRenderer->Write(SGridPositionU32(65, 40), Operations[4], static_cast<SUInt32>(Operations[4].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
-    ConsoleRenderer->Write(SGridPositionU32(65, 41), Operations[5], static_cast<SUInt32>(Operations[5].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second), Operations[0], static_cast<SUInt32>(Operations[0].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + 1), Operations[1], static_cast<SUInt32>(Operations[1].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + 2), Operations[2], static_cast<SUInt32>(Operations[2].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + 3), Operations[3], static_cast<SUInt32>(Operations[3].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + 4), Operations[4], static_cast<SUInt32>(Operations[4].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
+    ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + 5), Operations[5], static_cast<SUInt32>(Operations[5].size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
 }
 
 void SAOperationsHelpActor::ClearBuffer()
@@ -56,6 +56,9 @@ void SAOperationsHelpActor::CopyFrom(const SAActor& Other)
     // Attempt to cast the base class reference to a SAOperationsHelpActor pointer
     if (const SAOperationsHelpActor* OtherOperationsHelpActor = dynamic_cast<const SAOperationsHelpActor*>(&Other))
     {
+        // Call the parent CopyFrom
+        SAActor::CopyFrom(Other);
+
         // Copy the operations text from the source actor
         Operations = OtherOperationsHelpActor->Operations;
     }

@@ -5,6 +5,8 @@
 #include "Inputs/InputSystem.h"
 #include "Inputs/ConsoleInputHandler.h"
 #include "Framework/World.h"
+#include "Asset/AssetRegistry.h"
+#include "Audio/WAVLoader.h"
 
 SBool SSolitaireEngine::Initialize()
 {
@@ -52,7 +54,22 @@ SBool SSolitaireEngine::Initialize()
     S_LOG(LogTemp, TEXT("Solitaire Engine initialization completed."));
 
     // Play music
-    AudioEngine->PlaySound(Core::Paths::GetProjectContentPath() + TEXT("retro-game-arcade-236133.wav"), TEXT("Retro"), TEXT("MusicVolume"));
+    SWavFile* WAVFile = SAssetRegistry::GetInstance()->GetAsset<SWavFile>(Core::Paths::GetProjectContentPath() + TEXT("retro-game-arcade-236133.wav"));
+
+    // Prepare the audio buffer for playback
+    XAUDIO2_BUFFER AudioBuffer = {};  // Initialize all fields to zero
+
+    // Set the size of the audio data in bytes
+    AudioBuffer.AudioBytes = static_cast<SUInt32>(WAVFile->GetData().size());
+
+    // Provide a pointer to the raw PCM audio data
+    AudioBuffer.pAudioData = WAVFile->GetData().data();
+
+    // Loop the audio infinitely
+    AudioBuffer.LoopCount = XAUDIO2_LOOP_INFINITE;
+
+    // Play the sound on the audio engine with the specified volume group "MusicVolume"
+    AudioEngine->PlaySound(WAVFile, TEXT("Retro"), AudioBuffer, TEXT("MusicVolume"));
 
     return true;
 }

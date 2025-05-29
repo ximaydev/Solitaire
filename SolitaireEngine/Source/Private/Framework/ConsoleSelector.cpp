@@ -13,7 +13,8 @@ void FSelectionCursor::Write()
     GridPosition = SGridPositionU32(CalculateCursorXPosition(GridPosition.first, Cursor), GridPosition.second);
 
     // Write the cursor at the new position to the console buffer with the specified color (RED)
-    SConsoleRenderer::GetInstance()->Write(GridPosition, Cursor, static_cast<SUInt32>(Cursor.size()), true, FG_RED);
+    SConsoleRenderer* ConsoleRenderer = SConsoleRenderer::GetInstance();
+    ConsoleRenderer->Write(GridPosition, Cursor, static_cast<SUInt32>(Cursor.size()), true, FG_RED | ConsoleRenderer->GetCurrentBackgroundColor());
 }
 
 void FSelectionCursor::ClearBuffer()
@@ -80,7 +81,7 @@ void SAConsoleSelector::Write()
     for (const auto& Element : Options)
     {
         // Write the element's key (converted to a string) to the console at the calculated position
-        ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index++), Element.first.data(), static_cast<SUInt32>(Element.first.size()), true, FG_WHITE);
+        ConsoleRenderer->Write(SGridPositionU32(GridPosition.first, GridPosition.second + Index++), Element.first.data(), static_cast<SUInt32>(Element.first.size()), true, FG_BLACK | ConsoleRenderer->GetCurrentBackgroundColor());
     }
 
     // Clear old buffer

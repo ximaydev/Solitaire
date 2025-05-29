@@ -125,6 +125,8 @@ inline SSharedPtr<SnapshotType> SUndoManager<SnapshotType>::Undo()
 
                 // If the actor is a console selector, bind the "Undo Move" option to the world's undo handler
                 ConsoleSelector->SetNewCallback(TEXT("Undo Move"), std::bind(&SGameBoardWorld::HandleUndoMove, LastSnapshot));
+                ConsoleSelector->SetNewCallback(TEXT("New game"),  std::bind(&SGameBoardWorld::HandleCreateNewMatch, LastSnapshot));
+                ConsoleSelector->SetNewCallback(TEXT("Back to Main Menu"), std::bind(&SGameBoardWorld::HandleReturnToMainMenu, LastSnapshot));
             }
         }
 
