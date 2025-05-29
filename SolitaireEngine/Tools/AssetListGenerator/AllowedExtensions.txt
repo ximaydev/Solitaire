@@ -1,0 +1,16 @@
+# Allowed extensions for game engines
+
+# Image files
+.png, .jpg, .jpeg, .bmp, .tga, .gif, .dds, .psd, .exr, .hdr
+
+# Audio files
+.wav
+
+# Data files
+.json, .xml, .csv, .txt, .ini
+
+# Video files
+.mp4, .avi, .mkv, .mov, .webm, .ogv
+
+# Font files
+.ttf, .otf, .fnt, .ttc
