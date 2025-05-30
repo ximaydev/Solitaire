@@ -87,9 +87,6 @@ Implemented features include:
 - The file `PlayerScores.ini` stores data of players who finished the game – the last 10 scores are displayed in the **Main Menu**.
     
 - To change difficulty, edit `DefaultGame.ini` and modify the `CardsToRevealPerStockUse` value.
-    
-
-The entire project was developed in English to enhance my language skills and ensure accessibility for a global audience.
 
 ---
 
